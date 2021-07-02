@@ -1,0 +1,205 @@
+:host {
+    display: block;
+}
+
+.spotlight-search-backdrop {
+    background: rgba(0, 0, 0, 0.2);
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 100%;
+    font: inherit;
+    z-index: 999998;
+}
+
+.spotlight-search div,
+.spotlight-search h3,
+.spotlight-search p,
+.spotlight-search li,
+.spotlight-search ul,
+.spotlight-search nav,
+.spotlight-search figure,
+.spotlight-search img {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+}
+
+.spotlight-search ul {
+    list-style: none;
+}
+
+.spotlight-search,
+.spotlight-search figure {
+    display: block;
+}
+
+.spotlight-search {
+    line-height: 1;
+}
+
+.spotlight-search__input,
+.spotlight-search__input-bg,
+.spotlight-search__input-bg:after {
+    box-sizing: border-box;
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    color: #FFFFFF;
+    font-size: 34px;
+    font-weight: 300;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    line-height: 40px;
+    outline: none;
+}
+
+.spotlight-search {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    width: 100%;
+    max-width: 540px;
+    transform: translateX(-50%);
+    transition: top .3s ease-in-out;
+    border-radius: 3px;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    box-shadow: 0 1px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    z-index: 999999;
+}
+
+.spotlight-search--active {
+    display: block;
+}
+
+.spotlight-search__search {
+    position: relative;
+    padding: 12px 16px;
+    background-color: #0B0B0B;
+}
+
+.spotlight-search__input-bg {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    white-space: pre;
+    position: absolute;
+    display: inline-block;
+    color: transparent;
+    max-width: 100%;
+}
+
+.spotlight-search__input-bg:after {
+    content: attr(data-autocomplete);
+    color: #9F9FA0;
+}
+
+.spotlight__search--smalldescr .spotlight-search__input-bg:after {
+    font-size: 16px;
+    vertical-align: middle;
+}
+
+.spotlight-search__input {
+    position: relative;
+    width: 100%;
+    padding: 10px;
+    margin: 0;
+}
+
+.spotlight-search__results {
+    position: relative;
+    padding: 8px;
+    padding-top: 0;
+    background-color: #0B0B0B;
+}
+
+.spotlight-search__results--empty {
+    padding: 0;
+}
+
+.spotlight-search__list {
+    position: relative;
+    max-height: 390px;
+    overflow: hidden;
+}
+
+.spotlight-search__item {
+    padding: 4px 8px;
+    color: #FFFFFF;
+}
+
+.spotlight-search__item--active {
+    background-color: #272727;
+}
+
+.spotlight-search__figure {
+    float: left;
+    width: 32px;
+    height: 32px;
+    margin-right: 8px;
+}
+
+.spotlight-search__title {
+    font-weight: 300;
+    font-size: 15px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.spotlight-search__subtitle {
+    margin-top: 4px;
+    font-weight: 100;
+    font-size: 12px;
+    color: #B6B6B6;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.spotlight-search__indicator {
+    display: none;
+    position: absolute;
+    top: -2px;
+    bottom: 6px;
+    right: 8px;
+    width: 5px;
+    background-color: #0B0B0B;
+}
+
+.spotlight-search__indicator--active {
+    display: block;
+}
+
+.spotlight-search__thumb {
+    position: absolute;
+    top: 0%;
+    right: 0;
+    width: 2px;
+    height: 10%;
+    background-color: #272727;
+    transition: top ease-in-out .05s;
+}
+
+@media (max-width: 572px) {
+    .spotlight-search {
+        transform: none;
+        width: auto;
+        top: 16px;
+        left: 16px;
+        right: 16px;
+    }
+}
+
+@media (max-height: 574px) {
+    .spotlight-search {
+        top: 16px;
+    }
+}
