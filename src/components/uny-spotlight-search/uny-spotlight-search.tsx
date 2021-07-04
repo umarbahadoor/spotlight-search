@@ -71,11 +71,13 @@ export class UnySpotlightSearch {
 
   @State() dblCtrlKey: number = 0;
 
-  @State() isOpen: boolean = true;
+  @State() isOpen: boolean = false;
 
   @State() typedText: string = '';
 
   private defaultHelpText: string = 'What are you looking for?';
+
+  private currentStepHelpText: string = '';
 
   @State() helpText: string = '';
 
@@ -226,7 +228,40 @@ export class UnySpotlightSearch {
         "url": "https://umarbahadoor.com/wp-admin/plugin-install.php",
       }
     },
+    {
+      "title": "Add New Student",
+      "description": "",
+      "action": {
+        "type": "input",
+        "inputs": [
+          {
+            "type": "text",
+            "title": "Please provide the student's name",
+            "name": "name",
+            "required": true,
+          },
+          {
+            "type": "number",
+            "title": "Please provide the student's age",
+            "name": "age",
+            "required": true,
+          },
+          {
+            "type": "choice",
+            "title": "What is the student's gender?",
+            "name": "gender",
+            "required": true,
+            "choices": {
+              "male": "Male",
+              "female": "Female",
+            }
+          },
+        ]
+      }
+    },
   ];
+
+  actions: any = [];
 
   textInput!: HTMLInputElement;
 
@@ -239,6 +274,14 @@ export class UnySpotlightSearch {
 
   @Event() actionSelected: EventEmitter<any>;
 
+  constructor() {
+    this.reset();
+  }
+
+  componentWillLoad() {
+    this.openSpotlight();
+  }
+
   componentDidLoad() {
     console.info(this.el);
   }
@@ -249,7 +292,9 @@ export class UnySpotlightSearch {
     this.currentActiveItemIndex = -1;
     this.isOpen = false;
     this.results = [];
+    this.currentStepHelpText = this.defaultHelpText;
     this.helpText = this.defaultHelpText;
+    this.actions = [];
   }
 
   loadData(inputText: string, abortSignal: PromiseAbortSignal) {
@@ -283,8 +328,9 @@ export class UnySpotlightSearch {
   setActiveItem(index: number) {
     this.currentActiveItemIndex = index;
 
-    if (this.currentActiveItemIndex === -1) {
-      this.helpText = this.defaultHelpText;
+    if (this.typedText === '' && this.currentActiveItemIndex === -1) {
+      this.helpText = this.currentStepHelpText;
+
     }
 
     if (this.results && this.results.length > index) {
@@ -304,8 +350,9 @@ export class UnySpotlightSearch {
   }
 
   onKeyDown(event: KeyboardEvent) {
-    this.typedText = (event.currentTarget as HTMLInputElement).value;
-    this.clearHelpText();
+    const inputElement = (event.currentTarget as HTMLInputElement);
+    this.typedText = inputElement.value;
+    // this.helpText = '';
 
     if (event.key === 'Tab') {
       event.preventDefault();
@@ -318,11 +365,23 @@ export class UnySpotlightSearch {
       const activeItem = this.getActiveItem();
       if (activeItem && activeItem.action) {
 
-        this.actionSelected.emit(activeItem);
+        if(activeItem.action.type === 'input') {
+          console.log(activeItem.action);
+          this.actions = [];
+          this.actions.push(activeItem);
 
-        // if(activeItem.action.type === 'url') {
-        //   window.location = activeItem.action.url;
-        // }
+          inputElement.value = '';
+          this.typedText = '';
+          this.currentStepHelpText = activeItem.action.inputs[0].title;
+          this.helpText = activeItem.action.inputs[0].title;
+          this.results = [];
+          inputElement.focus();
+
+        } else if(activeItem.action.type === 'url') {
+           window.location = activeItem.action.url;
+        } else {
+          this.actionSelected.emit(activeItem);
+        }
       }
 
     }
@@ -410,10 +469,6 @@ export class UnySpotlightSearch {
       this.textInput && this.textInput.focus();
     }, 0)
 
-  }
-
-  private clearHelpText() {
-    this.helpText = '';
   }
 
   private setHelpText(text: string) {
