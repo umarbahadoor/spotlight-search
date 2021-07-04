@@ -5,10 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
     <title>Stencil Component Starter</title>
 
-    <script type="module" src="/build/spotlight-search.esm.js"></script>
-    <script nomodule src="/build/spotlight-search.js"></script>
+    <script type="module" src="/build/uny-spotlight-search.esm.js"></script>
+    <script nomodule src="/build/uny-spotlight-search.js"></script>
   </head>
   <body>
-    <uny-spotlight-search first="Stencil" last="'Don't call me a framework' JS"></uny-spotlight-search>
+    <uny-spotlight-search url="'http://localhost:1234/'"></uny-spotlight-search>
+    <script>
+      const elem = document.querySelector('uny-spotlight-search');
+      elem.addEventListener('actionSelected', event => { console.log(event) });
+    </script>
   </body>
 </html>

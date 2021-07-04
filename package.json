@@ -1,7 +1,7 @@
 {
-  "name": "spotlight-search",
+  "name": "@umarbahadoor/uny-spotlight-search",
   "version": "0.0.1",
-  "description": "Stencil Component Starter",
+  "description": "Spotlight Search Web Component",
   "main": "dist/index.cjs.js",
   "module": "dist/custom-elements/index.js",
   "es2015": "dist/esm/index.mjs",
@@ -9,7 +9,7 @@
   "types": "dist/custom-elements/index.d.ts",
   "collection": "dist/collection/collection-manifest.json",
   "collection:main": "dist/collection/index.js",
-  "unpkg": "dist/spotlight-search/spotlight-search.esm.js",
+  "unpkg": "dist/uny-spotlight-search/uny-spotlight-search.esm.js",
   "files": [
     "dist/",
     "loader/"
@@ -22,12 +22,27 @@
     "generate": "stencil generate"
   },
   "dependencies": {
-    "@stencil/core": "^2.0.1"
+    "@stencil/core": "^2.0.1",
+    "ss-search": "^1.6.1"
   },
-  "license": "MIT",
+  "license": "ISC",
   "devDependencies": {
     "@types/jest": "^26.0.21",
+    "@types/lodash": "^4.14.170",
     "jest": "^26.6.3",
     "jest-cli": "^26.6.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/umarbahadoor/spotlight-search.git"
+  },
+  "keywords": [
+    "spotlight",
+    "search"
+  ],
+  "author": "umarbahadoor <umar.bahadoor@gmail.com>",
+  "bugs": {
+    "url": "https://github.com/umarbahadoor/spotlight-search/issues"
+  },
+  "homepage": "https://github.com/umarbahadoor/spotlight-search#readme"
 }

@@ -1,7 +1,7 @@
 import { Config } from '@stencil/core';
 
 export const config: Config = {
-  namespace: 'spotlight-search',
+  namespace: 'uny-spotlight-search',
   outputTargets: [
     {
       type: 'dist',

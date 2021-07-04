@@ -1,10 +1,60 @@
-import {Listen, Component, Element, State, Prop, h} from '@stencil/core';
+import {Listen, Component, Element, State, Prop, h, Event, EventEmitter} from '@stencil/core';
+import {HTMLStencilElement} from "@stencil/core/internal";
+import {search} from "ss-search";
 
-type UnySpotLightSearchResultItem = {
+class UnySpotLightSearchResultItem {
+
   image: string;
+
   title: string;
+
   description: string;
-};
+
+  action: any;
+
+  isActive: boolean = false;
+
+  constructor(title: string, description: string, image: string, action: any) {
+    this.title = title;
+    this.description = description;
+    this.image = image;
+    this.action = action;
+    this.isActive = false;
+  }
+
+  getCssClasses(): string {
+    const classes = ['spotlight-search__item'];
+
+    if (this.isActive) {
+      classes.push('spotlight-search__item--active');
+    }
+
+    return classes.join(' ');
+  }
+}
+
+class PromiseAbortSignal {
+  private _isPending: boolean = false;
+
+  reject: (reason: any) => void ;
+
+  constructor() {
+    this.reject = () => {};
+  }
+
+  setup(reject: (reason: any) => void) {
+    this.reject = reject;
+    this._isPending = true;
+  }
+
+  complete() {
+    this._isPending = false;
+  }
+
+  isPending(): boolean {
+    return this._isPending;
+  }
+}
 
 @Component({
   tag: 'uny-spotlight-search',
@@ -13,48 +63,326 @@ type UnySpotLightSearchResultItem = {
 })
 export class UnySpotlightSearch {
 
-  @Element() private el: HTMLElement;
+  @Element() private el: HTMLStencilElement;
+
+  @State() tick: number = 0;
+
+  @State() currentActiveItemIndex: number = -1;
 
   @State() dblCtrlKey: number = 0;
 
   @State() isOpen: boolean = true;
 
-  @State() currentPlaceholder: string = 'What are you looking for?';
+  @State() typedText: string = '';
 
-  @State() results: UnySpotLightSearchResultItem[] = [
+  private defaultHelpText: string = 'What are you looking for?';
+
+  @State() helpText: string = '';
+
+  @State() results: UnySpotLightSearchResultItem[] = [];
+
+  data: any = [
     {
-      image: 'https://i.picsum.photos/id/609/16/16.jpg?hmac=W_DSzvH_u4Jj8F6xaeuuix7okHy6JnFfYWvz531pXFY',
-      title: ' ~ First Result',
-      description: 'Insert a new row'
-    }];
+      "title": "Dashboard",
+      "description": "Go to the WordPress dashboard",
+      "action": {
+        "type": "url",
+        "target": "self",
+        "url": "https://umarbahadoor.com/wp-admin/",
+      }
+    },
+    {
+      "title": "Updates",
+      "description": "Manage WordPress updates",
+      "action": {
+        "type": "url",
+        "target": "self",
+        "url": "https://umarbahadoor.com/wp-admin/update-core.php",
+      }
+    },
+    {
+      "title": "View All Posts",
+      "description": "View all posts",
+      "action": {
+        "type": "url",
+        "target": "self",
+        "url": "https://umarbahadoor.com/wp-admin/edit.php",
+      }
+    },
+    {
+      "title": "Add New Post",
+      "description": "Add a new post",
+      "action": {
+        "type": "url",
+        "target": "self",
+        "url": "https://umarbahadoor.com/wp-admin/post-new.php",
+      }
+    },
+    {
+      "title": "Manage Categories",
+      "description": "",
+      "action": {
+        "type": "url",
+        "target": "self",
+        "url": "https://umarbahadoor.com/wp-admin/edit-tags.php?taxonomy=category",
+      }
+    },
+    {
+      "title": "Manage Tags",
+      "description": "",
+      "action": {
+        "type": "url",
+        "target": "self",
+        "url": "https://umarbahadoor.com/wp-admin/edit-tags.php?taxonomy=post_tag",
+      }
+    },
+    {
+      "title": "Media Library",
+      "description": "Open the media library",
+      "action": {
+        "type": "url",
+        "target": "self",
+        "url": "https://umarbahadoor.com/wp-admin/upload.php",
+      }
+    },
+    {
+      "title": "Upload Media",
+      "description": "Upload a new media to the media library",
+      "action": {
+        "type": "url",
+        "target": "self",
+        "url": "https://umarbahadoor.com/wp-admin/media-new.php",
+      }
+    },
+    {
+      "title": "View All Page",
+      "description": "View all pages",
+      "action": {
+        "type": "url",
+        "target": "self",
+        "url": "https://umarbahadoor.com/wp-admin/edit.php?post_type=page",
+      }
+    },
+    {
+      "title": "Add New Page",
+      "description": "Add a new page",
+      "action": {
+        "type": "url",
+        "target": "self",
+        "url": "https://umarbahadoor.com/wp-admin/post-new.php?post_type=page",
+      }
+    },
+    {
+      "title": "Themes (Appearance)",
+      "description": "",
+      "action": {
+        "type": "url",
+        "target": "self",
+        "url": "https://umarbahadoor.com/wp-admin/themes.php",
+      }
+    },
+    {
+      "title": "Customize (Appearance)",
+      "description": "",
+      "action": {
+        "type": "url",
+        "target": "self",
+        "url": "https://umarbahadoor.com/wp-admin/customize.php?return=%2Fwp-admin%2F",
+      }
+    },
+    {
+      "title": "Widgets (Appearance)",
+      "description": "",
+      "action": {
+        "type": "url",
+        "target": "self",
+        "url": "https://umarbahadoor.com/wp-admin/widgets.php",
+      }
+    },
+    {
+      "title": "Menus (Appearance)",
+      "description": "",
+      "action": {
+        "type": "url",
+        "target": "self",
+        "url": "https://umarbahadoor.com/wp-admin/nav-menus.php",
+      }
+    },
+    {
+      "title": "Installed Plugins",
+      "description": "",
+      "action": {
+        "type": "url",
+        "target": "self",
+        "url": "https://umarbahadoor.com/wp-admin/plugins.php",
+      }
+    },
+    {
+      "title": "Add New Plugin",
+      "description": "",
+      "action": {
+        "type": "url",
+        "target": "self",
+        "url": "https://umarbahadoor.com/wp-admin/plugin-install.php",
+      }
+    },
+  ];
 
   textInput!: HTMLInputElement;
+
+  private requestAbortSignal: PromiseAbortSignal = new PromiseAbortSignal();
 
   /**
    * The api endpoint
    */
   @Prop() url: string;
 
+  @Event() actionSelected: EventEmitter<any>;
+
   componentDidLoad() {
-    console.log(this.el); // outputs HTMLElement <my-component ...
+    console.info(this.el);
+  }
+
+  reset() {
+    this.dblCtrlKey = 0;
+    this.tick = 0;
+    this.currentActiveItemIndex = -1;
+    this.isOpen = false;
+    this.results = [];
+    this.helpText = this.defaultHelpText;
+  }
+
+  loadData(inputText: string, abortSignal: PromiseAbortSignal) {
+    return new Promise((resolve, reject) => {
+      abortSignal.setup(reject);
+      abortSignal.complete();
+      const searchResults = search(this.data, ['title', 'description'], inputText, {withScore: true});
+
+      const results = searchResults.sort((a: {score: number, element: any}, b: {score: number, element: any}) => {
+        return b.score - a.score;
+      }).filter((result: {score: number, element: any}) => result.score > 0)
+        .map((result: {score: number, element: any}) => result.element );
+
+      resolve(results);
+
+      // setTimeout(() => {
+      //   abortSignal.complete();
+      //   return resolve([]);
+      // }, 1000);
+    })
+  }
+
+  getActiveItem() {
+    if (this.currentActiveItemIndex !== -1 && this.results && this.results.length > this.currentActiveItemIndex) {
+      return this.results[this.currentActiveItemIndex];
+    }
+
+    return null;
+  }
+
+  setActiveItem(index: number) {
+    this.currentActiveItemIndex = index;
+
+    if (this.currentActiveItemIndex === -1) {
+      this.helpText = this.defaultHelpText;
+    }
+
+    if (this.results && this.results.length > index) {
+      this.updateActiveItem();
+    }
+  }
+
+  updateActiveItem() {
+    this.results.forEach((result) => {
+      result.isActive = false;
+    });
+
+    if (this.currentActiveItemIndex !== -1) {
+      this.results[this.currentActiveItemIndex].isActive = true;
+      this.setHelpText(this.results[this.currentActiveItemIndex].title);
+    }
+  }
+
+  onKeyDown(event: KeyboardEvent) {
+    this.typedText = (event.currentTarget as HTMLInputElement).value;
+    this.clearHelpText();
+
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const activeItem = this.getActiveItem();
+      if (activeItem && activeItem.action) {
+
+        this.actionSelected.emit(activeItem);
+
+        // if(activeItem.action.type === 'url') {
+        //   window.location = activeItem.action.url;
+        // }
+      }
+
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (this.currentActiveItemIndex > 0) {
+        this.setActiveItem(this.currentActiveItemIndex - 1);
+      }
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      event.stopPropagation()
+      if (this.currentActiveItemIndex < (this.results.length - 1)) {
+        this.setActiveItem(this.currentActiveItemIndex + 1);
+      }
+    }
+
   }
 
   onInputChange(event: InputEvent) {
-    const value = (event.currentTarget as HTMLInputElement).value;
-    this.results = [
-      {
-        image: 'https://i.picsum.photos/id/609/16/16.jpg?hmac=W_DSzvH_u4Jj8F6xaeuuix7okHy6JnFfYWvz531pXFY',
-        title: value + ' ~ First Result',
-        description: 'Insert a new row'
-      }
-    ];
-    console.log(this.results);
+    this.typedText = (event.currentTarget as HTMLInputElement).value;
+
+    if(this.requestAbortSignal.isPending()) {
+      this.requestAbortSignal.reject('Cancelled');
+    }
+
+    this.loadData(this.typedText, this.requestAbortSignal)
+      .then((results: []) => {
+        console.log('Promise completed: ', results.length);
+        const searchResults: UnySpotLightSearchResultItem[] = results.map((result: any) => {
+          return new UnySpotLightSearchResultItem(result.title, result.description, result.image, result.action);
+        });
+
+        this.results = searchResults;
+
+        this.helpText = '';
+
+        if(this.results.length) {
+          this.setActiveItem(0);
+        } else {
+          this.setActiveItem(-1);
+        }
+
+      })
+      .catch((reason) => {
+        console.log('Promise failed: ', reason);
+      });
+  }
+
+  onResultItemHover(_event: MouseEvent, index: number) {
+    if(this.currentActiveItemIndex !== index) {
+      this.setActiveItem(index);
+    }
   }
 
   @Listen('keydown', {target: 'document'})
   handleKeypress(event: KeyboardEvent) {
-    console.log(event);
-
     if (event.key === 'Control' && !this.isOpen) {
       if (this.dblCtrlKey > 0) {
         this.openSpotlight();
@@ -75,57 +403,85 @@ export class UnySpotlightSearch {
     }
   }
 
-  private openSpotlight()
-  {
+  private openSpotlight() {
+    this.reset();
     this.isOpen = true;
-    setTimeout(() => {this.textInput && this.textInput.focus();}, 0)
+    setTimeout(() => {
+      this.textInput && this.textInput.focus();
+    }, 0)
 
   }
-  private closeSpotlight()
-  {
+
+  private clearHelpText() {
+    this.helpText = '';
+  }
+
+  private setHelpText(text: string) {
+    if (!text.startsWith(this.typedText)) {
+      this.helpText = ' - '.concat(text);
+      return;
+    }
+
+    this.helpText = text.substring(this.typedText.length);
+  }
+
+  private helpTextClasses() {
+    const classes = [];
+    if (this.helpText.startsWith(' - ')) {
+      classes.push('spotlight-search__input-decorator__help-text--small');
+    }
+
+    return classes;
+  }
+
+  private closeSpotlight() {
     this.isOpen = false;
   }
 
-  // @Watch('isOpen')
-  // onOpen(newValue: boolean, oldValue: boolean) {
-  //   console.log(newValue, oldValue);
-  //   if (newValue === true && oldValue === false && this.textInput) {
-  //     this.textInput.focus();
-  //   }
-  // }
-
   render() {
+
     if (!this.isOpen) {
       return null;
     }
 
+    let searchResultClasses = ['spotlight-search__results'];
+
+    if (this.results.length) {
+      searchResultClasses.push('spotlight-search__results--empty');
+    }
+
     return [
       <div class="spotlight-search-backdrop"></div>,
-      <div class="spotlight-search-debug">
-        <h2>Ctrl Key Count: {this.dblCtrlKey}</h2>
-        <div>{this.dblCtrlKey === 0 && <h3>ZERO</h3>}</div>
-      </div>,
+      <div class="spotlight-search-debug"></div>,
       <nav class="spotlight-search">
         <div class="spotlight-search__search">
-          <div class="spotlight-search__input-bg" data-autocomplete=""></div>
+          <div class="spotlight-search__input-decorator">
+            <span class="spotlight-search__input-decorator__typed-text">{this.typedText}</span>
+            <span class={[...this.helpTextClasses(), 'spotlight-search__input-decorator__help-text'].join(' ')}>{this.helpText}</span>
+          </div>
           <input
             class="spotlight-search__input"
             type="text"
-            placeholder={this.currentPlaceholder}
-            ref={(element) => {this.textInput = element as HTMLInputElement}}
-            onInput={this.onInputChange}
-            autofocus />
+            ref={(element) => {
+              this.textInput = element as HTMLInputElement
+            }}
+            onInput={(event: InputEvent) => {
+              this.onInputChange(event)
+            }}
+            onKeyDown={(event: KeyboardEvent) => {
+              this.onKeyDown(event)
+            }}
+            autofocus/>
         </div>
-        <div class="spotlight-search__results spotlight-search__results--empty">
+        <div class={searchResultClasses.join(' ')}>
           <ul class="spotlight-search__list">
-            {this.results.map((result) =>
-              <li class="spotlight__item" onMouseOver={(e) => {console.log(e)}}>
-                <div class="spotlight__info">
-                  <figure class="spotlight__figure">
-                    <img src={result.image}  class="spotlight__image" />
-                  </figure>
-                  <h3 class="spotlight__title">{result.title}</h3>
-                  <p class="spotlight__subtitle">{result.description}</p>
+            {this.results.map((result, index) =>
+              <li class={result.getCssClasses()} onMouseOver={(event) => this.onResultItemHover(event, index)}>
+                <div class="spotlight-search__info">
+                  <h3 class="spotlight-search__title">{result.title}</h3>
+                  {(result.description &&
+                  <p class="spotlight-search__subtitle">{result.description}</p>
+                  )}
                 </div>
               </li>
             )}

@@ -45,9 +45,9 @@
     line-height: 1;
 }
 
-.spotlight-search__input,
-.spotlight-search__input-bg,
-.spotlight-search__input-bg:after {
+.spotlight-search .spotlight-search__input,
+.spotlight-search .spotlight-search__input-decorator__typed-text,
+.spotlight-search .spotlight-search__input-decorator__help-text {
     box-sizing: border-box;
     background-color: transparent;
     border: none;
@@ -58,6 +58,29 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     line-height: 40px;
     outline: none;
+}
+
+.spotlight-search .spotlight-search__input-decorator {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  white-space: pre;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.spotlight-search .spotlight-search__input-decorator__typed-text {
+  opacity: 0;
+}
+
+.spotlight-search .spotlight-search__input-decorator__help-text {
+  color: #9F9FA0;
+}
+
+.spotlight-search .spotlight-search__input-decorator__help-text--small {
+  font-size: 16px;
+  vertical-align: middle;
 }
 
 .spotlight-search {
@@ -79,74 +102,63 @@
     display: block;
 }
 
-.spotlight-search__search {
+.spotlight-search .spotlight-search__search {
     position: relative;
     padding: 12px 16px;
     background-color: #0B0B0B;
+  height: 32px;
 }
 
-.spotlight-search__input-bg {
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    white-space: pre;
-    position: absolute;
-    display: inline-block;
-    color: transparent;
-    max-width: 100%;
+.spotlight-search .spotlight-search__input {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  margin: 0;
+  width: calc(100% - 32px);
 }
 
-.spotlight-search__input-bg:after {
-    content: attr(data-autocomplete);
-    color: #9F9FA0;
+.spotlight-search .spotlight-search__input--placeholder {
+  pointer-events: none;
 }
 
-.spotlight__search--smalldescr .spotlight-search__input-bg:after {
-    font-size: 16px;
-    vertical-align: middle;
-}
-
-.spotlight-search__input {
-    position: relative;
-    width: 100%;
-    padding: 10px;
-    margin: 0;
-}
-
-.spotlight-search__results {
+.spotlight-search .spotlight-search__results {
     position: relative;
     padding: 8px;
     padding-top: 0;
     background-color: #0B0B0B;
 }
 
-.spotlight-search__results--empty {
+.spotlight-search .spotlight-search__results--empty {
     padding: 0;
 }
 
-.spotlight-search__list {
+.spotlight-search .spotlight-search__list {
     position: relative;
     max-height: 390px;
     overflow: hidden;
 }
 
-.spotlight-search__item {
+.spotlight-search .spotlight-search__item {
     padding: 4px 8px;
     color: #FFFFFF;
 }
 
-.spotlight-search__item--active {
+.spotlight-search .spotlight-search__item--active {
     background-color: #272727;
 }
 
-.spotlight-search__figure {
+.spotlight-search .spotlight-search__info {
+  padding: 4px 8px;
+}
+
+.spotlight-search .spotlight-search__figure {
     float: left;
     width: 32px;
     height: 32px;
     margin-right: 8px;
 }
 
-.spotlight-search__title {
+.spotlight-search .spotlight-search__title {
     font-weight: 300;
     font-size: 15px;
     text-overflow: ellipsis;
@@ -154,7 +166,7 @@
     white-space: nowrap;
 }
 
-.spotlight-search__subtitle {
+.spotlight-search .spotlight-search__subtitle {
     margin-top: 4px;
     font-weight: 100;
     font-size: 12px;
@@ -164,7 +176,7 @@
     white-space: nowrap;
 }
 
-.spotlight-search__indicator {
+.spotlight-search .spotlight-search__indicator {
     display: none;
     position: absolute;
     top: -2px;
@@ -174,11 +186,11 @@
     background-color: #0B0B0B;
 }
 
-.spotlight-search__indicator--active {
+.spotlight-search .spotlight-search__indicator--active {
     display: block;
 }
 
-.spotlight-search__thumb {
+.spotlight-search .spotlight-search__thumb {
     position: absolute;
     top: 0%;
     right: 0;

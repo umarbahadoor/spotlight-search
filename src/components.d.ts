@@ -26,6 +26,7 @@ declare global {
 }
 declare namespace LocalJSX {
     interface UnySpotlightSearch {
+        "onActionSelected"?: (event: CustomEvent<any>) => void;
         /**
           * The api endpoint
          */
