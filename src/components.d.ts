@@ -7,9 +7,6 @@
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 export namespace Components {
     interface UnySpotlightSearch {
-        /**
-          * The api endpoint
-         */
         "url": string;
     }
 }
@@ -27,9 +24,6 @@ declare global {
 declare namespace LocalJSX {
     interface UnySpotlightSearch {
         "onActionSelected"?: (event: CustomEvent<any>) => void;
-        /**
-          * The api endpoint
-         */
         "url"?: string;
     }
     interface IntrinsicElements {
