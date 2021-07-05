@@ -1,6 +1,6 @@
 {
   "name": "@umarbahadoor/uny-spotlight-search",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "Spotlight Search Web Component",
   "main": "dist/index.cjs.js",
   "module": "dist/custom-elements/index.js",

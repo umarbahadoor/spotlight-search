@@ -90,7 +90,7 @@ export class UnySpotlightSearch {
       "action": {
         "type": "url",
         "target": "self",
-        "url": "https://umarbahadoor.com/wp-admin/",
+        "url": "/wp-admin/",
       }
     },
     {
@@ -99,7 +99,7 @@ export class UnySpotlightSearch {
       "action": {
         "type": "url",
         "target": "self",
-        "url": "https://umarbahadoor.com/wp-admin/update-core.php",
+        "url": "/wp-admin/update-core.php",
       }
     },
     {
@@ -108,7 +108,7 @@ export class UnySpotlightSearch {
       "action": {
         "type": "url",
         "target": "self",
-        "url": "https://umarbahadoor.com/wp-admin/edit.php",
+        "url": "/wp-admin/edit.php",
       }
     },
     {
@@ -117,7 +117,7 @@ export class UnySpotlightSearch {
       "action": {
         "type": "url",
         "target": "self",
-        "url": "https://umarbahadoor.com/wp-admin/post-new.php",
+        "url": "/wp-admin/post-new.php",
       }
     },
     {
@@ -126,7 +126,7 @@ export class UnySpotlightSearch {
       "action": {
         "type": "url",
         "target": "self",
-        "url": "https://umarbahadoor.com/wp-admin/edit-tags.php?taxonomy=category",
+        "url": "/wp-admin/edit-tags.php?taxonomy=category",
       }
     },
     {
@@ -135,7 +135,7 @@ export class UnySpotlightSearch {
       "action": {
         "type": "url",
         "target": "self",
-        "url": "https://umarbahadoor.com/wp-admin/edit-tags.php?taxonomy=post_tag",
+        "url": "/wp-admin/edit-tags.php?taxonomy=post_tag",
       }
     },
     {
@@ -144,7 +144,7 @@ export class UnySpotlightSearch {
       "action": {
         "type": "url",
         "target": "self",
-        "url": "https://umarbahadoor.com/wp-admin/upload.php",
+        "url": "/wp-admin/upload.php",
       }
     },
     {
@@ -153,7 +153,7 @@ export class UnySpotlightSearch {
       "action": {
         "type": "url",
         "target": "self",
-        "url": "https://umarbahadoor.com/wp-admin/media-new.php",
+        "url": "/wp-admin/media-new.php",
       }
     },
     {
@@ -162,7 +162,7 @@ export class UnySpotlightSearch {
       "action": {
         "type": "url",
         "target": "self",
-        "url": "https://umarbahadoor.com/wp-admin/edit.php?post_type=page",
+        "url": "/wp-admin/edit.php?post_type=page",
       }
     },
     {
@@ -171,7 +171,7 @@ export class UnySpotlightSearch {
       "action": {
         "type": "url",
         "target": "self",
-        "url": "https://umarbahadoor.com/wp-admin/post-new.php?post_type=page",
+        "url": "/wp-admin/post-new.php?post_type=page",
       }
     },
     {
@@ -180,7 +180,7 @@ export class UnySpotlightSearch {
       "action": {
         "type": "url",
         "target": "self",
-        "url": "https://umarbahadoor.com/wp-admin/themes.php",
+        "url": "/wp-admin/themes.php",
       }
     },
     {
@@ -189,7 +189,7 @@ export class UnySpotlightSearch {
       "action": {
         "type": "url",
         "target": "self",
-        "url": "https://umarbahadoor.com/wp-admin/customize.php?return=%2Fwp-admin%2F",
+        "url": "/wp-admin/customize.php?return=%2Fwp-admin%2F",
       }
     },
     {
@@ -198,7 +198,7 @@ export class UnySpotlightSearch {
       "action": {
         "type": "url",
         "target": "self",
-        "url": "https://umarbahadoor.com/wp-admin/widgets.php",
+        "url": "/wp-admin/widgets.php",
       }
     },
     {
@@ -207,7 +207,7 @@ export class UnySpotlightSearch {
       "action": {
         "type": "url",
         "target": "self",
-        "url": "https://umarbahadoor.com/wp-admin/nav-menus.php",
+        "url": "/wp-admin/nav-menus.php",
       }
     },
     {
@@ -216,7 +216,7 @@ export class UnySpotlightSearch {
       "action": {
         "type": "url",
         "target": "self",
-        "url": "https://umarbahadoor.com/wp-admin/plugins.php",
+        "url": "/wp-admin/plugins.php",
       }
     },
     {
@@ -225,7 +225,7 @@ export class UnySpotlightSearch {
       "action": {
         "type": "url",
         "target": "self",
-        "url": "https://umarbahadoor.com/wp-admin/plugin-install.php",
+        "url": "/wp-admin/plugin-install.php",
       }
     },
     {
@@ -279,7 +279,7 @@ export class UnySpotlightSearch {
   }
 
   componentWillLoad() {
-    this.openSpotlight();
+    //this.openSpotlight();
   }
 
   componentDidLoad() {
