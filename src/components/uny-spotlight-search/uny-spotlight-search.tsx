@@ -1,6 +1,8 @@
 import {Listen, Component, Element, State, Prop, h, Event, EventEmitter} from '@stencil/core';
 import {HTMLStencilElement} from "@stencil/core/internal";
 import {search} from "ss-search";
+import { disableBodyScroll, enableBodyScroll } from 'body-scroll-lock';
+
 
 class UnySpotLightSearchResultItem {
 
@@ -242,11 +244,9 @@ export class UnySpotlightSearch {
         this.loadData(this.typedText, this.requestAbortSignal)
             .then((results: []) => {
                 console.log('Promise completed: ', results.length);
-                const searchResults: UnySpotLightSearchResultItem[] = results.map((result: any) => {
+                this.results = results.map((result: any) => {
                     return new UnySpotLightSearchResultItem(result.title, result.description, result.image, result.action);
                 });
-
-                this.results = searchResults;
 
                 this.helpText = '';
 
@@ -290,18 +290,6 @@ export class UnySpotlightSearch {
         }
     }
 
-    private openSpotlight() {
-        if (!this.data) {
-            return;
-        }
-
-        this.reset();
-        this.isOpen = true;
-        setTimeout(() => {
-            this.textInput && this.textInput.focus();
-        }, 0)
-
-    }
 
     private setHelpText(text: string) {
         if (!text.startsWith(this.typedText)) {
@@ -321,8 +309,22 @@ export class UnySpotlightSearch {
         return classes;
     }
 
+    private openSpotlight() {
+        if (!this.data) {
+            return;
+        }
+
+        disableBodyScroll(this.el)
+        this.reset();
+        this.isOpen = true;
+        setTimeout(() => {
+            this.textInput && this.textInput.focus();
+        }, 0)
+    }
+
     private closeSpotlight() {
         this.isOpen = false;
+        enableBodyScroll(this.el);
     }
 
     render() {

@@ -7,9 +7,9 @@
 
 ## Properties
 
-| Property | Attribute | Description      | Type     | Default     |
-| -------- | --------- | ---------------- | -------- | ----------- |
-| `url`    | `url`     | The api endpoint | `string` | `undefined` |
+| Property | Attribute | Description | Type     | Default     |
+| -------- | --------- | ----------- | -------- | ----------- |
+| `url`    | `url`     |             | `string` | `undefined` |
 
 
 ## Events
