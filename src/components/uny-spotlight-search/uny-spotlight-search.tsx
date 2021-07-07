@@ -1,67 +1,13 @@
 import {Listen, Component, Element, State, Prop, h, Event, EventEmitter} from '@stencil/core';
 import {HTMLStencilElement} from "@stencil/core/internal";
 import {search} from "ss-search";
-import { disableBodyScroll, enableBodyScroll } from 'body-scroll-lock';
-
-
-class UnySpotLightSearchResultItem {
-
-    image: string;
-
-    title: string;
-
-    description: string;
-
-    action: any;
-
-    isActive: boolean = false;
-
-    constructor(title: string, description: string, image: string, action: any) {
-        this.title       = title;
-        this.description = description;
-        this.image       = image;
-        this.action      = action;
-        this.isActive    = false;
-    }
-
-    getCssClasses(): string {
-        const classes = ['spotlight-search__item'];
-
-        if (this.isActive) {
-            classes.push('spotlight-search__item--active');
-        }
-
-        return classes.join(' ');
-    }
-}
-
-class PromiseAbortSignal {
-    private _isPending: boolean = false;
-
-    reject: (reason: any) => void;
-
-    constructor() {
-        this.reject = () => {
-        };
-    }
-
-    setup(reject: (reason: any) => void) {
-        this.reject     = reject;
-        this._isPending = true;
-    }
-
-    complete() {
-        this._isPending = false;
-    }
-
-    isPending(): boolean {
-        return this._isPending;
-    }
-}
+import {disableBodyScroll, enableBodyScroll} from 'body-scroll-lock';
+import {UnySpotLightSearchResultItem} from "../../classes/UnySpotLightSearchResultItem";
+import {PromiseAbortSignal} from "../../classes/PromiseAbortSignal";
 
 @Component({
     tag: 'uny-spotlight-search',
-    styleUrl: 'uny-spotlight-search.css',
+    styleUrl: 'uny-spotlight-search.scss',
     shadow: true,
 })
 export class UnySpotlightSearch {
@@ -82,6 +28,8 @@ export class UnySpotlightSearch {
 
     private currentStepHelpText: string = '';
 
+    private currentStepResults: [] = null;
+
     @State() helpText: string = '';
 
     @State() results: UnySpotLightSearchResultItem[] = [];
@@ -97,6 +45,8 @@ export class UnySpotlightSearch {
     @Prop() url: string;
 
     @Event() actionSelected: EventEmitter<any>;
+
+    private showPreview: boolean = true;
 
     constructor() {
         this.reset();
@@ -117,14 +67,15 @@ export class UnySpotlightSearch {
     }
 
     reset() {
-        this.dblCtrlKey             = 0;
-        this.tick                   = 0;
+        this.dblCtrlKey = 0;
+        this.tick = 0;
         this.currentActiveItemIndex = -1;
-        this.isOpen                 = false;
-        this.results                = [];
-        this.currentStepHelpText    = this.defaultHelpText;
-        this.helpText               = this.defaultHelpText;
-        this.actions                = [];
+        this.currentStepResults = null;
+        this.isOpen = false;
+        this.results = [];
+        this.currentStepHelpText = this.defaultHelpText;
+        this.helpText = this.defaultHelpText;
+        this.actions = [];
     }
 
     loadData(inputText: string, abortSignal: PromiseAbortSignal) {
@@ -136,14 +87,9 @@ export class UnySpotlightSearch {
             const results = searchResults.sort((a: { score: number, element: any }, b: { score: number, element: any }) => {
                 return b.score - a.score;
             }).filter((result: { score: number, element: any }) => result.score > 0)
-                                         .map((result: { score: number, element: any }) => result.element);
+                .map((result: { score: number, element: any }) => result.element);
 
             resolve(results);
-
-            // setTimeout(() => {
-            //   abortSignal.complete();
-            //   return resolve([]);
-            // }, 1000);
         })
     }
 
@@ -181,7 +127,7 @@ export class UnySpotlightSearch {
 
     onKeyDown(event: KeyboardEvent) {
         const inputElement = (event.currentTarget as HTMLInputElement);
-        this.typedText     = inputElement.value;
+        this.typedText = inputElement.value;
         // this.helpText = '';
 
         if (event.key === 'Tab') {
@@ -200,11 +146,12 @@ export class UnySpotlightSearch {
                     this.actions = [];
                     this.actions.push(activeItem);
 
-                    inputElement.value       = '';
-                    this.typedText           = '';
+                    inputElement.value = '';
+                    this.typedText = '';
                     this.currentStepHelpText = activeItem.action.inputs[0].title;
-                    this.helpText            = activeItem.action.inputs[0].title;
-                    this.results             = [];
+                    this.helpText = activeItem.action.inputs[0].title;
+                    this.results = [];
+                    this.currentStepResults = [];
                     inputElement.focus();
 
                 } else if (activeItem.action.type === 'url') {
@@ -241,25 +188,40 @@ export class UnySpotlightSearch {
             this.requestAbortSignal.reject('Cancelled');
         }
 
-        this.loadData(this.typedText, this.requestAbortSignal)
-            .then((results: []) => {
-                console.log('Promise completed: ', results.length);
-                this.results = results.map((result: any) => {
-                    return new UnySpotLightSearchResultItem(result.title, result.description, result.image, result.action);
-                });
-
-                this.helpText = '';
-
-                if (this.results.length) {
-                    this.setActiveItem(0);
-                } else {
-                    this.setActiveItem(-1);
-                }
-
-            })
-            .catch((reason) => {
-                console.log('Promise failed: ', reason);
+        if (this.currentStepResults !== null) {
+            this.results = this.currentStepResults.map((result: any) => {
+                return new UnySpotLightSearchResultItem(result.title, result.description, result.image, result.action);
             });
+
+            this.helpText = '';
+
+            if (this.results.length) {
+                this.setActiveItem(0);
+            } else {
+                this.setActiveItem(-1);
+            }
+
+        } else {
+            this.loadData(this.typedText, this.requestAbortSignal)
+                .then((results: []) => {
+                    console.log('Promise completed: ', results.length);
+                    this.results = results.map((result: any) => {
+                        return new UnySpotLightSearchResultItem(result.title, result.description, result.image, result.action);
+                    });
+
+                    this.helpText = '';
+
+                    if (this.results.length) {
+                        this.setActiveItem(0);
+                    } else {
+                        this.setActiveItem(-1);
+                    }
+
+                })
+                .catch((reason) => {
+                    console.log('Promise failed: ', reason);
+                });
+        }
     }
 
     onResultItemHover(_event: MouseEvent, index: number) {
@@ -301,7 +263,7 @@ export class UnySpotlightSearch {
     }
 
     private helpTextClasses() {
-        const classes = [];
+        const classes = ['spotlight-search__input-decorator__help-text'];
         if (this.helpText.startsWith(' - ')) {
             classes.push('spotlight-search__input-decorator__help-text--small');
         }
@@ -335,7 +297,12 @@ export class UnySpotlightSearch {
 
         let searchResultClasses = ['spotlight-search__results'];
 
+        if(this.showPreview) {
+            searchResultClasses.push('spotlight-search__results--with-preview');
+        }
+
         if (this.results.length) {
+
             searchResultClasses.push('spotlight-search__results--empty');
         }
 
@@ -346,7 +313,8 @@ export class UnySpotlightSearch {
                 <div class="spotlight-search__search">
                     <div class="spotlight-search__input-decorator">
                         <span class="spotlight-search__input-decorator__typed-text">{this.typedText}</span>
-                        <span class={[...this.helpTextClasses(), 'spotlight-search__input-decorator__help-text'].join(' ')}>{this.helpText}</span>
+                        <span
+                            class={ this.helpTextClasses().join(' ')}>{this.helpText}</span>
                     </div>
                     <input
                         class="spotlight-search__input"
@@ -363,21 +331,68 @@ export class UnySpotlightSearch {
                         autofocus/>
                 </div>
                 <div class={searchResultClasses.join(' ')}>
-                    <ul class="spotlight-search__list">
-                        {this.results.map((result, index) =>
-                            <li class={result.getCssClasses()} onMouseOver={(event) => this.onResultItemHover(event, index)}>
-                                <div class="spotlight-search__info">
-                                    <h3 class="spotlight-search__title">{result.title}</h3>
-                                    {(result.description &&
-                                        <p class="spotlight-search__subtitle">{result.description}</p>
-                                    )}
-                                </div>
-                            </li>
-                        )}
-                    </ul>
-                    <div class="spotlight-search__indicator">
-                        <div class="spotlight-search__thumb"></div>
+                    <div class="spotlight-search__list-wrapper">
+                        <ul class="spotlight-search__list">
+                            {this.results.map((result, index) =>
+                                <li class={result.getCssClasses()}
+                                    onMouseOver={(event) => this.onResultItemHover(event, index)}>
+                                    <div class="spotlight-search__info">
+                                        <h3 class="spotlight-search__title">{result.title}</h3>
+                                        {(result.description &&
+                                            <p class="spotlight-search__subtitle">{result.description}</p>
+                                        )}
+                                    </div>
+                                </li>
+                            )}
+                        </ul>
                     </div>
+                    {(this.showPreview &&
+                    <div class="spotlight-search__preview-pane">
+                        <div class="spotlight-search__preview-pane-content">
+                            <div class="spotlight-search__preview-pane-inner-content">
+                                <img src="https://picsum.photos/400/360" />
+                                <h4>The title</h4>
+                                <h5>The subtitle</h5>
+                                <div class="attributes">
+                                    <table>
+                                        <tr>
+                                            <td class="attribute__label">Label</td>
+                                            <td class="attribute__value">Value</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="attribute__label">Label</td>
+                                            <td class="attribute__value">Value</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="attribute__label">Label</td>
+                                            <td class="attribute__value">Value</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="attribute__label">Label</td>
+                                            <td class="attribute__value">Value</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="attribute__label">Label</td>
+                                            <td class="attribute__value">Value</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="attribute__label">Label</td>
+                                            <td class="attribute__value">Value</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="attribute__label">Label</td>
+                                            <td class="attribute__value">Value</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="attribute__label">Label</td>
+                                            <td class="attribute__value">Value</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    )}
                 </div>
             </nav>
         ];
