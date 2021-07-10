@@ -1,9 +1,10 @@
-import {Listen, Component, Element, State, Prop, h, Event, EventEmitter} from '@stencil/core';
+import {Listen, Component, Element, State, Prop, h, Event, Host, EventEmitter} from '@stencil/core';
 import {HTMLStencilElement} from "@stencil/core/internal";
 import {search} from "ss-search";
 import {disableBodyScroll, enableBodyScroll} from 'body-scroll-lock';
 import {UnySpotLightSearchResultItem} from "../../classes/UnySpotLightSearchResultItem";
 import {PromiseAbortSignal} from "../../classes/PromiseAbortSignal";
+import {PreviewPaneRenderer} from "../../classes/PreviewPaneRenderer";
 
 @Component({
     tag: 'uny-spotlight-search',
@@ -34,11 +35,15 @@ export class UnySpotlightSearch {
 
     @State() results: UnySpotLightSearchResultItem[] = [];
 
+    @State() currentActiveItem: UnySpotLightSearchResultItem;
+
     data: any = null;
 
     actions: any = [];
 
     textInput!: HTMLInputElement;
+
+    searchElement!: HTMLElement;
 
     private requestAbortSignal: PromiseAbortSignal = new PromiseAbortSignal();
 
@@ -57,25 +62,60 @@ export class UnySpotlightSearch {
     }
 
     componentDidLoad() {
-        console.info(this.el);
+        this.fetchIndex();
+    }
 
+    connectedCallback() {
+
+    }
+
+    disconnectedCallback() {
+
+    }
+
+    handleClickOutside()
+    {
+        this.closeSpotlight();
+    }
+
+    registerClickOutsideHandler()
+    {
+        this.unregisterClickOutsideHandler();
+
+        window.addEventListener('click', this.handleClickOutside.bind(this), false);
+    }
+
+    unregisterClickOutsideHandler()
+    {
+        window.removeEventListener('click', this.handleClickOutside.bind(this), false);
+    }
+
+
+    reset() {
+        this.dblCtrlKey             = 0;
+        this.tick                   = 0;
+        this.currentActiveItemIndex = -1;
+        this.currentActiveItem      = null;
+        this.currentStepResults     = null;
+        this.isOpen                 = false;
+        this.results                = [];
+        this.currentStepHelpText    = this.defaultHelpText;
+        this.helpText               = this.defaultHelpText;
+        this.actions                = [];
+        this.typedText = '';
+
+        if (this.textInput) {
+            this.textInput.value = '';
+        }
+    }
+
+    fetchIndex()
+    {
         fetch(this.url)
             .then(response => response.json())
             .then(data => {
                 this.data = data
             });
-    }
-
-    reset() {
-        this.dblCtrlKey = 0;
-        this.tick = 0;
-        this.currentActiveItemIndex = -1;
-        this.currentStepResults = null;
-        this.isOpen = false;
-        this.results = [];
-        this.currentStepHelpText = this.defaultHelpText;
-        this.helpText = this.defaultHelpText;
-        this.actions = [];
     }
 
     loadData(inputText: string, abortSignal: PromiseAbortSignal) {
@@ -87,7 +127,7 @@ export class UnySpotlightSearch {
             const results = searchResults.sort((a: { score: number, element: any }, b: { score: number, element: any }) => {
                 return b.score - a.score;
             }).filter((result: { score: number, element: any }) => result.score > 0)
-                .map((result: { score: number, element: any }) => result.element);
+                                         .map((result: { score: number, element: any }) => result.element);
 
             resolve(results);
         })
@@ -106,7 +146,6 @@ export class UnySpotlightSearch {
 
         if (this.typedText === '' && this.currentActiveItemIndex === -1) {
             this.helpText = this.currentStepHelpText;
-
         }
 
         if (this.results && this.results.length > index) {
@@ -115,19 +154,21 @@ export class UnySpotlightSearch {
     }
 
     updateActiveItem() {
+        this.currentActiveItem = null;
         this.results.forEach((result) => {
             result.isActive = false;
         });
 
         if (this.currentActiveItemIndex !== -1) {
             this.results[this.currentActiveItemIndex].isActive = true;
+            this.currentActiveItem                             = this.results[this.currentActiveItemIndex];
             this.setHelpText(this.results[this.currentActiveItemIndex].title);
         }
     }
 
     onKeyDown(event: KeyboardEvent) {
         const inputElement = (event.currentTarget as HTMLInputElement);
-        this.typedText = inputElement.value;
+        this.typedText     = inputElement.value;
         // this.helpText = '';
 
         if (event.key === 'Tab') {
@@ -146,12 +187,12 @@ export class UnySpotlightSearch {
                     this.actions = [];
                     this.actions.push(activeItem);
 
-                    inputElement.value = '';
-                    this.typedText = '';
+                    inputElement.value       = '';
+                    this.typedText           = '';
                     this.currentStepHelpText = activeItem.action.inputs[0].title;
-                    this.helpText = activeItem.action.inputs[0].title;
-                    this.results = [];
-                    this.currentStepResults = [];
+                    this.helpText            = activeItem.action.inputs[0].title;
+                    this.results             = [];
+                    this.currentStepResults  = [];
                     inputElement.focus();
 
                 } else if (activeItem.action.type === 'url') {
@@ -224,12 +265,32 @@ export class UnySpotlightSearch {
         }
     }
 
+    onResultItemClick(_event: MouseEvent, index: number) {
+        console.log(_event);
+        console.log(index);
+    }
+
     onResultItemHover(_event: MouseEvent, index: number) {
         if (this.currentActiveItemIndex !== index) {
             this.setActiveItem(index);
         }
     }
 
+    /**
+     * Naming convention: @see https://gomakethings.com/custom-event-naming-conventions-in-vanilla-js/
+     *
+     * @param event
+     */
+    @Listen('uny:spotlight-search', {target: 'window'})
+    handleGlobalSpotlightSearchEvent(event: Event) {
+        console.log(event);
+        this.openSpotlight();
+    }
+
+    /**
+     *
+     * @param event
+     */
     @Listen('keydown', {target: 'document'})
     handleKeypress(event: KeyboardEvent) {
         if (event.key === 'Control' && !this.isOpen) {
@@ -276,6 +337,7 @@ export class UnySpotlightSearch {
             return;
         }
 
+        this.registerClickOutsideHandler();
         disableBodyScroll(this.el)
         this.reset();
         this.isOpen = true;
@@ -286,115 +348,69 @@ export class UnySpotlightSearch {
 
     private closeSpotlight() {
         this.isOpen = false;
+        this.unregisterClickOutsideHandler();
         enableBodyScroll(this.el);
     }
 
     render() {
-
-        if (!this.isOpen) {
-            return null;
-        }
-
         let searchResultClasses = ['spotlight-search__results'];
 
-        if(this.showPreview) {
+        if (this.showPreview) {
             searchResultClasses.push('spotlight-search__results--with-preview');
         }
 
         if (this.results.length) {
-
             searchResultClasses.push('spotlight-search__results--empty');
         }
 
-        return [
-            <div class="spotlight-search-backdrop"></div>,
-            <div class="spotlight-search-debug"></div>,
-            <nav class="spotlight-search">
-                <div class="spotlight-search__search">
-                    <div class="spotlight-search__input-decorator">
-                        <span class="spotlight-search__input-decorator__typed-text">{this.typedText}</span>
-                        <span
-                            class={ this.helpTextClasses().join(' ')}>{this.helpText}</span>
-                    </div>
-                    <input
-                        class="spotlight-search__input"
-                        type="text"
-                        ref={(element) => {
-                            this.textInput = element as HTMLInputElement
-                        }}
-                        onInput={(event: InputEvent) => {
-                            this.onInputChange(event)
-                        }}
-                        onKeyDown={(event: KeyboardEvent) => {
-                            this.onKeyDown(event)
-                        }}
-                        autofocus/>
-                </div>
-                <div class={searchResultClasses.join(' ')}>
-                    <div class="spotlight-search__list-wrapper">
-                        <ul class="spotlight-search__list">
-                            {this.results.map((result, index) =>
-                                <li class={result.getCssClasses()}
-                                    onMouseOver={(event) => this.onResultItemHover(event, index)}>
-                                    <div class="spotlight-search__info">
-                                        <h3 class="spotlight-search__title">{result.title}</h3>
-                                        {(result.description &&
-                                            <p class="spotlight-search__subtitle">{result.description}</p>
-                                        )}
-                                    </div>
-                                </li>
-                            )}
-                        </ul>
-                    </div>
-                    {(this.showPreview &&
-                    <div class="spotlight-search__preview-pane">
-                        <div class="spotlight-search__preview-pane-content">
-                            <div class="spotlight-search__preview-pane-inner-content">
-                                <img src="https://picsum.photos/400/360" />
-                                <h4>The title</h4>
-                                <h5>The subtitle</h5>
-                                <div class="attributes">
-                                    <table>
-                                        <tr>
-                                            <td class="attribute__label">Label</td>
-                                            <td class="attribute__value">Value</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="attribute__label">Label</td>
-                                            <td class="attribute__value">Value</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="attribute__label">Label</td>
-                                            <td class="attribute__value">Value</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="attribute__label">Label</td>
-                                            <td class="attribute__value">Value</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="attribute__label">Label</td>
-                                            <td class="attribute__value">Value</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="attribute__label">Label</td>
-                                            <td class="attribute__value">Value</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="attribute__label">Label</td>
-                                            <td class="attribute__value">Value</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="attribute__label">Label</td>
-                                            <td class="attribute__value">Value</td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </div>
+        return (
+            <Host aria-hidden={this.isOpen ? 'false' : 'true'} class={{'is-open': this.isOpen}}>
+                <div class="spotlight-search-backdrop" />
+                <div class="spotlight-search-debug" />
+                <nav class="spotlight-search"
+                     onClick={(event: MouseEvent) => {
+                        event.stopPropagation();
+                    }} ref={(element) => {
+                        this.searchElement = element as HTMLElement;
+                    }}>
+                    <div class="spotlight-search__search">
+                        <div class="spotlight-search__input-decorator">
+                            <span class="spotlight-search__input-decorator__typed-text">{this.typedText}</span>
+                            <span
+                                class={this.helpTextClasses().join(' ')}>{this.helpText}</span>
                         </div>
+                        <input
+                            class="spotlight-search__input"
+                            type="text"
+                            ref={(element) => {
+                                this.textInput = element as HTMLInputElement
+                            }}
+                            onInput={(event: InputEvent) => {
+                                this.onInputChange(event)
+                            }}
+                            onKeyDown={(event: KeyboardEvent) => {
+                                this.onKeyDown(event)
+                            }}
+                            autofocus/>
                     </div>
-                    )}
-                </div>
-            </nav>
-        ];
+                    <div class={searchResultClasses.join(' ')}>
+                        <div class="spotlight-search__list-wrapper">
+                            <ul class="spotlight-search__list">
+                                {this.results.map((result, index) =>
+                                    <li class={result.getCssClasses()}
+                                        onClick={(event) => this.onResultItemClick(event, index)}
+                                        onMouseOver={(event) => this.onResultItemHover(event, index)}>
+                                        <div class="spotlight-search__info">
+                                            <h3 class="spotlight-search__title">{result.title}</h3>
+                                        </div>
+                                    </li>
+                                )}
+                            </ul>
+                        </div>
+                        {(this.showPreview && this.currentActiveItem && PreviewPaneRenderer.render(this.currentActiveItem))}
+                    </div>
+                </nav>
+            </Host>
+        );
     }
 }
