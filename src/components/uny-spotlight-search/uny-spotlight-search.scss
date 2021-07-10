@@ -1,4 +1,8 @@
 :host {
+    display: none;
+}
+
+:host(.is-open) {
     display: block;
 }
 
@@ -11,8 +15,8 @@
     bottom: 0;
     margin: 0;
     padding: 0;
-    font-size: 100%;
     font: inherit;
+    font-size: 100%;
     z-index: 999998;
 }
 
@@ -54,8 +58,8 @@
         margin: 0;
         padding: 0;
         border: 0;
-        font-size: 100%;
         font: inherit;
+        font-size: 100%;
         vertical-align: baseline;
     }
 
@@ -86,7 +90,6 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      white-space: pre;
       display: flex;
       align-items: center;
       justify-content: flex-start;
@@ -111,7 +114,7 @@
 
     .spotlight-search__search {
         position: relative;
-        padding: 12px 16px;
+        padding: 12px 16px 20px;
         background-color: transparent;
         height: 32px;
     }
@@ -161,7 +164,6 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
         color: #9F9FA0;
 
         overflow-x: hidden;
@@ -219,12 +221,13 @@
     }
 
     .spotlight-search__item {
-        padding: 4px 8px;
+        padding: 8px 8px;
+        cursor: pointer;
         color: #a5a5a5;
     }
 
     .spotlight-search__item--active {
-        background-color: transparent;
+        background-color: #00000014;
         color: #fff;
     }
 
@@ -245,6 +248,7 @@
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
+        line-height: 20px;
     }
 
     .spotlight-search__subtitle {
@@ -272,7 +276,7 @@
 
     .spotlight-search__thumb {
         position: absolute;
-        top: 0%;
+        top: 0;
         right: 0;
         width: 2px;
         height: 10%;
