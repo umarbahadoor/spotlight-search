@@ -3,9 +3,36 @@ import {HTMLStencilElement} from "@stencil/core/internal";
 import {search} from "ss-search";
 import {disableBodyScroll, enableBodyScroll} from 'body-scroll-lock';
 import {UnySpotLightSearchResultItem} from "../../classes/UnySpotLightSearchResultItem";
-import {PromiseAbortSignal} from "../../classes/PromiseAbortSignal";
 import {PreviewPaneRenderer} from "../../classes/PreviewPaneRenderer";
 
+interface SearchResultWithScore {
+    score: number;
+    element: any;
+}
+
+/**
+ *
+ * @example
+ * ```
+ <uny-spotlight-search url="https://run.mocky.io/v3/9982f483-94f4-4224-abe9-4870857e7327"></uny-spotlight-search>
+ <script>
+    const elem = document.querySelector('uny-spotlight-search');
+    elem.addEventListener('actionSelected', event => {
+        console.log('actionSelected');
+        console.log(event);
+    });
+
+    window.addEventListener('DOMContentLoaded', (event) => {
+        const trigger = document.querySelector('.js-spotlight-search-trigger');
+        trigger.addEventListener('click', function (e) {
+            e.preventDefault()
+            e.stopPropagation();
+            window.dispatchEvent(new Event('uny:spotlight-search'));
+        });
+    });
+ </script>
+ * ```
+ */
 @Component({
     tag: 'uny-spotlight-search',
     styleUrl: 'uny-spotlight-search.scss',
@@ -45,16 +72,23 @@ export class UnySpotlightSearch {
 
     searchElement!: HTMLElement;
 
-    private requestAbortSignal: PromiseAbortSignal = new PromiseAbortSignal();
+    actionCollection: [] = [];
 
     @Prop() url: string;
 
+    @Prop() closeOnEscape: boolean = true;
+
+    @Prop() keyboardShortcuts: string = 'Ctrl > Ctrl, Shift > Shift, Cmd+S';
+
     @Event() actionSelected: EventEmitter<any>;
+
+    keyboardListener: KeyboardListener;
 
     private showPreview: boolean = true;
 
     constructor() {
         this.reset();
+        this.keyboardListener = new KeyboardListener(this.keyboardShortcuts);
     }
 
     componentWillLoad() {
@@ -73,24 +107,24 @@ export class UnySpotlightSearch {
 
     }
 
-    handleClickOutside()
-    {
+    handleClickOutside() {
         this.closeSpotlight();
     }
 
-    registerClickOutsideHandler()
-    {
+    registerClickOutsideHandler() {
         this.unregisterClickOutsideHandler();
 
         window.addEventListener('click', this.handleClickOutside.bind(this), false);
     }
 
-    unregisterClickOutsideHandler()
-    {
+    unregisterClickOutsideHandler() {
         window.removeEventListener('click', this.handleClickOutside.bind(this), false);
     }
 
-
+    /**
+     * Resets the state to all the defaults.
+     *
+     */
     reset() {
         this.dblCtrlKey             = 0;
         this.tick                   = 0;
@@ -102,15 +136,14 @@ export class UnySpotlightSearch {
         this.currentStepHelpText    = this.defaultHelpText;
         this.helpText               = this.defaultHelpText;
         this.actions                = [];
-        this.typedText = '';
+        this.typedText              = '';
 
         if (this.textInput) {
             this.textInput.value = '';
         }
     }
 
-    fetchIndex()
-    {
+    fetchIndex() {
         fetch(this.url)
             .then(response => response.json())
             .then(data => {
@@ -118,58 +151,120 @@ export class UnySpotlightSearch {
             });
     }
 
-    loadData(inputText: string, abortSignal: PromiseAbortSignal) {
-        return new Promise((resolve, reject) => {
-            abortSignal.setup(reject);
-            abortSignal.complete();
-            const searchResults = search(this.data, ['title', 'description'], inputText, {withScore: true});
+    searchResultsScoreCompareFunction(a: SearchResultWithScore, b: SearchResultWithScore)
+    {
+        return b.score - a.score;
+    }
 
-            const results = searchResults.sort((a: { score: number, element: any }, b: { score: number, element: any }) => {
-                return b.score - a.score;
-            }).filter((result: { score: number, element: any }) => result.score > 0)
-                                         .map((result: { score: number, element: any }) => result.element);
+    /**
+     * Performs a search within the index and returns a promise with the matched items.
+     *
+     * @param inputText
+     */
+    search(inputText: string): Promise<any[]>
+    {
+        return new Promise((resolve) => {
+            const searchableKeys = ['title', 'description'];
+            const options = {withScore: true};
+
+            const searchResults = search(
+                this.data,
+                searchableKeys,
+                inputText,
+                options
+            );
+
+            const results = searchResults
+                .sort(this.searchResultsScoreCompareFunction)
+                .filter((result: SearchResultWithScore) => result.score > 0)
+                .map((result: SearchResultWithScore) => result.element);
 
             resolve(results);
         })
     }
 
-    getActiveItem() {
-        if (this.currentActiveItemIndex !== -1 && this.results && this.results.length > this.currentActiveItemIndex) {
+    /**
+     * @return UnySpotLightSearchResultItem | null
+     */
+    getActiveItem(): UnySpotLightSearchResultItem | null {
+        if (this.currentActiveItemIndex !== -1
+            && this.results
+            && this.results.length > this.currentActiveItemIndex
+        ) {
             return this.results[this.currentActiveItemIndex];
         }
 
         return null;
     }
 
-    setActiveItem(index: number) {
+    /**
+     *
+     * @param index
+     */
+    setActiveItemByIndex(index: number) {
+        /**
+         * Perform some basic validation, to ensure integrity.
+         */
+        if (index < -1) {
+            throw new Error('The index provided cannot be less than -1');
+        }
+
+        if (index > -1 && index >= this.results.length) {
+            throw new Error('The index provided cannot be greater that the size of the results.');
+        }
+
+        /**
+         * The most important task of this method. Actually set the currentActiveItemIndex.
+         */
         this.currentActiveItemIndex = index;
 
+        /**
+         * If there is no typed text and the index is -1, we reset the help text.
+         */
         if (this.typedText === '' && this.currentActiveItemIndex === -1) {
             this.helpText = this.currentStepHelpText;
         }
 
+        /**
+         * Check if the index exists in the results.
+         * i.e. The result length is greater than the index.
+         * e.g. If we have 5 items in our results, the index cannot exceed 4.
+         */
         if (this.results && this.results.length > index) {
-            this.updateActiveItem();
+            /**
+             * Reset the current active item, this will disable the current preview
+             */
+            this.currentActiveItem = null;
+
+            /**
+             * Remove the `isActive` property from all the current results
+             */
+            this.results.forEach((result) => {
+                result.isActive = false;
+            });
+
+            /**
+             * If the currentActiveItemIndex is -1, that means that we only removing
+             * the active item. But any other value > 0, should update that specific
+             * item in the results list. And also update the preview if any. Finally,
+             * the help text should be updated to match the current active item.
+             */
+            if (this.currentActiveItemIndex !== -1) {
+                this.results[this.currentActiveItemIndex].isActive = true;
+                this.currentActiveItem = this.results[this.currentActiveItemIndex];
+                this.setHelpText(this.results[this.currentActiveItemIndex].title);
+            }
         }
     }
 
-    updateActiveItem() {
-        this.currentActiveItem = null;
-        this.results.forEach((result) => {
-            result.isActive = false;
-        });
-
-        if (this.currentActiveItemIndex !== -1) {
-            this.results[this.currentActiveItemIndex].isActive = true;
-            this.currentActiveItem                             = this.results[this.currentActiveItemIndex];
-            this.setHelpText(this.results[this.currentActiveItemIndex].title);
-        }
-    }
-
+    /**
+     * Handler for the `keydown` event of the main search input element.
+     *
+     * @param event
+     */
     onKeyDown(event: KeyboardEvent) {
         const inputElement = (event.currentTarget as HTMLInputElement);
         this.typedText     = inputElement.value;
-        // this.helpText = '';
 
         if (event.key === 'Tab') {
             event.preventDefault();
@@ -208,7 +303,7 @@ export class UnySpotlightSearch {
             event.preventDefault();
             event.stopImmediatePropagation();
             if (this.currentActiveItemIndex > 0) {
-                this.setActiveItem(this.currentActiveItemIndex - 1);
+                this.setActiveItemByIndex(this.currentActiveItemIndex - 1);
             }
         }
 
@@ -216,7 +311,7 @@ export class UnySpotlightSearch {
             event.preventDefault();
             event.stopPropagation()
             if (this.currentActiveItemIndex < (this.results.length - 1)) {
-                this.setActiveItem(this.currentActiveItemIndex + 1);
+                this.setActiveItemByIndex(this.currentActiveItemIndex + 1);
             }
         }
 
@@ -224,10 +319,6 @@ export class UnySpotlightSearch {
 
     onInputChange(event: InputEvent) {
         this.typedText = (event.currentTarget as HTMLInputElement).value;
-
-        if (this.requestAbortSignal.isPending()) {
-            this.requestAbortSignal.reject('Cancelled');
-        }
 
         if (this.currentStepResults !== null) {
             this.results = this.currentStepResults.map((result: any) => {
@@ -237,15 +328,14 @@ export class UnySpotlightSearch {
             this.helpText = '';
 
             if (this.results.length) {
-                this.setActiveItem(0);
+                this.setActiveItemByIndex(0);
             } else {
-                this.setActiveItem(-1);
+                this.setActiveItemByIndex(-1);
             }
 
         } else {
-            this.loadData(this.typedText, this.requestAbortSignal)
+            this.search(this.typedText)
                 .then((results: []) => {
-                    console.log('Promise completed: ', results.length);
                     this.results = results.map((result: any) => {
                         return new UnySpotLightSearchResultItem(result.title, result.description, result.image, result.action);
                     });
@@ -253,9 +343,9 @@ export class UnySpotlightSearch {
                     this.helpText = '';
 
                     if (this.results.length) {
-                        this.setActiveItem(0);
+                        this.setActiveItemByIndex(0);
                     } else {
-                        this.setActiveItem(-1);
+                        this.setActiveItemByIndex(-1);
                     }
 
                 })
@@ -272,43 +362,52 @@ export class UnySpotlightSearch {
 
     onResultItemHover(_event: MouseEvent, index: number) {
         if (this.currentActiveItemIndex !== index) {
-            this.setActiveItem(index);
+            this.setActiveItemByIndex(index);
         }
     }
 
     /**
+     * Listen to a global event to open the spotlight-search
+     *
      * Naming convention: @see https://gomakethings.com/custom-event-naming-conventions-in-vanilla-js/
      *
      * @param event
      */
     @Listen('uny:spotlight-search', {target: 'window'})
-    handleGlobalSpotlightSearchEvent(event: Event) {
-        console.log(event);
+    handleGlobalSpotlightSearchEvent() {
         this.openSpotlight();
     }
 
     /**
+     * Listen to the document event of keydown to be able to use a keyboard shortcut
+     * to open the spotlight.
      *
      * @param event
      */
     @Listen('keydown', {target: 'document'})
     handleKeypress(event: KeyboardEvent) {
-        if (event.key === 'Control' && !this.isOpen) {
-            if (this.dblCtrlKey > 0) {
-                this.openSpotlight();
-                this.dblCtrlKey = 0;
-            } else {
-                this.dblCtrlKey++
-                setTimeout(() => {
-                    this.dblCtrlKey = 0
-                }, 400);
-            }
-        } else {
-            this.dblCtrlKey = 0
+        console.log(event);
+        if (!this.isOpen && this.keyboardListener.isValidShortcode(event)) {
+            this.openSpotlight();
+            //if (event.key === 'Control' && !this.isOpen) {
+            //    if (this.dblCtrlKey > 0) {
+            //        this.openSpotlight();
+            //        this.dblCtrlKey = 0;
+            //    } else {
+            //        this.dblCtrlKey++
+            //        setTimeout(() => {
+            //            this.dblCtrlKey = 0
+            //        }, 400);
+            //    }
+            //} else {
+            //    this.dblCtrlKey = 0
+            //}
         }
 
-        // hide spotlight on ESC
-        if (event.key === 'Escape') {
+        /**
+         * Hide spotlight on ESC
+         */
+        if (this.isOpen && this.closeOnEscape && event.key === 'Escape') {
             this.closeSpotlight();
         }
     }
@@ -332,6 +431,16 @@ export class UnySpotlightSearch {
         return classes;
     }
 
+    /**
+     * Opens the spotlight search by setting the state `isOpen` to true.
+     * But also does other things:
+     * 1. Registers a click outside handler on the window element
+     * 2. Disables scrolling the body
+     * 3. Resets the state of the component
+     * 3. Sets the focus on the search input element
+     *
+     * @private
+     */
     private openSpotlight() {
         if (!this.data) {
             return;
@@ -346,12 +455,23 @@ export class UnySpotlightSearch {
         }, 0)
     }
 
+    /**
+     * Closes the spotlight search by setting the state `isOpen` to false.
+     * But also does other things:
+     * 1. Unregisters a click outside handler on the window element
+     * 2. Enables scrolling the body
+     *
+     * @private
+     */
     private closeSpotlight() {
         this.isOpen = false;
         this.unregisterClickOutsideHandler();
         enableBodyScroll(this.el);
     }
 
+    /**
+     * The main rendering method for the component.
+     */
     render() {
         let searchResultClasses = ['spotlight-search__results'];
 

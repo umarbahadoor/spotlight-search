@@ -1,170 +1,184 @@
 <!DOCTYPE html>
 <html dir="ltr" lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
-    <title>Stencil Component Starter</title>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0"/>
+    <title>Uny Spotlight Search</title>
 
     <script type="module" src="/build/uny-spotlight-search.esm.js"></script>
     <script nomodule src="/build/uny-spotlight-search.js"></script>
-  </head>
-  <body>
-    <uny-spotlight-search url="https://run.mocky.io/v3/9982f483-94f4-4224-abe9-4870857e7327"></uny-spotlight-search>
-    <script>
-      const elem = document.querySelector('uny-spotlight-search');
-      elem.addEventListener('actionSelected', event => { console.log('actionSelected'); console.log(event) });
-    </script>
-    <div class="container">
-      <div class="module">
+</head>
+<body>
+<uny-spotlight-search url="http://localhost:3366/data.json"></uny-spotlight-search>
+<script>
+    const elem = document.querySelector('uny-spotlight-search');
+    elem.addEventListener('actionSelected', event => {
+        console.log('actionSelected');
+        console.log(event);
+    });
+
+    window.addEventListener('DOMContentLoaded', (event) => {
+        const trigger = document.querySelector('.js-spotlight-search-trigger');
+        trigger.addEventListener('click', function (e) {
+            e.preventDefault()
+            e.stopPropagation();
+            window.dispatchEvent(new Event('uny:spotlight-search'));
+        });
+    });
+</script>
+
+<button class="js-spotlight-search-trigger">Open Spotlight Search</button>
+<div class="container">
+    <div class="module">
         <h3>Lorem ipsum dolor sit amet.</h3>
         <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aliquid blanditiis, commodi cupiditate eligendi enim, eos eum illo incidunt ipsam ipsum iste iure minus, molestiae nam nemo nisi perspiciatis quae quibusdam quidem
-          repudiandae rerum sapiente similique tempora tempore vel voluptates voluptatum?</p>
-      </div>
-      <div class="module">
+            repudiandae rerum sapiente similique tempora tempore vel voluptates voluptatum?</p>
+    </div>
+    <div class="module">
         <h3>Commodi dicta perferendis possimus totam?</h3>
         <p>Aspernatur debitis dolores ducimus eum iure iusto placeat possimus provident quod. At commodi distinctio modi nihil. Alias blanditiis consequuntur cum debitis distinctio expedita fuga iure magni. Aut, debitis dignissimos dolorem
-          doloremque error fuga illum, ipsam necessitatibus nesciunt provident quo suscipit.</p>
-      </div>
-      <div class="module">
+            doloremque error fuga illum, ipsam necessitatibus nesciunt provident quo suscipit.</p>
+    </div>
+    <div class="module">
         <h3>Deserunt dignissimos eos mollitia sed.</h3>
         <p>Commodi dolores ipsa labore nulla saepe? Accusantium aliquam autem debitis deleniti dignissimos ea ex excepturi facere, in ipsa maiores necessitatibus, nemo nisi omnis repellat sequi sint totam voluptatum! Blanditiis dolor,
-          dolorum ea eligendi eum excepturi explicabo omnis quae quam soluta?</p>
-      </div>
-      <div class="module">
+            dolorum ea eligendi eum excepturi explicabo omnis quae quam soluta?</p>
+    </div>
+    <div class="module">
         <h3>Dolorum earum ex nesciunt quo?</h3>
         <p>Amet blanditiis magnam porro provident tempora voluptas, voluptate? Autem blanditiis doloremque esse incidunt, magnam maxime nisi nostrum nulla quis ratione sapiente tempora ullam? Ab aliquam aperiam at autem commodi culpa
-          exercitationem fuga, impedit praesentium quam quos sed suscipit temporibus voluptate?</p>
-      </div>
-      <div class="module">
+            exercitationem fuga, impedit praesentium quam quos sed suscipit temporibus voluptate?</p>
+    </div>
+    <div class="module">
         <h3>Molestias necessitatibus odit tempore voluptatem!</h3>
         <p>Autem illo odio omnis voluptate. Accusamus amet eveniet ipsam libero, quos rerum. Molestiae, omnis, voluptate. Accusantium consectetur corporis dolor earum enim esse, eum eveniet excepturi ipsum libero magnam molestias nam quia
-          quibusdam saepe, tempore veniam. Fugit minus officiis quas repellat!</p>
-      </div>
-      <div class="module">
+            quibusdam saepe, tempore veniam. Fugit minus officiis quas repellat!</p>
+    </div>
+    <div class="module">
         <h3>Aperiam cupiditate doloribus vel voluptate.</h3>
         <p>Consectetur cum est et excepturi hic id molestiae mollitia, nam nesciunt nulla perspiciatis quia sapiente vel. At, blanditiis cupiditate facere quo quod similique tenetur ullam veritatis. Adipisci aperiam aspernatur autem beatae
-          commodi, dolore expedita, laboriosam magnam perferendis reprehenderit repudiandae veritatis.</p>
-      </div>
-      <div class="module">
+            commodi, dolore expedita, laboriosam magnam perferendis reprehenderit repudiandae veritatis.</p>
+    </div>
+    <div class="module">
         <h3>Cum laudantium possimus quas vero?</h3>
         <p>Adipisci at dignissimos esse fugiat illo in iste libero maiores numquam placeat, provident quod repellat voluptatum! Adipisci aperiam aut culpa cumque doloremque eligendi, enim eum hic impedit magnam, magni obcaecati odio omnis
-          porro quisquam quo unde veniam veritatis vero vitae?</p>
-      </div>
-      <div class="module">
+            porro quisquam quo unde veniam veritatis vero vitae?</p>
+    </div>
+    <div class="module">
         <h3>Aliquid autem iste veniam voluptatum.</h3>
         <p>Ad aliquam dolorem eaque hic quibusdam tempore tenetur ullam. Alias atque corporis doloremque excepturi odio ratione! Accusamus aliquid dolor excepturi fugiat, impedit mollitia natus nostrum placeat provident quas recusandae rem
-          reprehenderit rerum totam vitae! Dignissimos explicabo maiores nesciunt pariatur sit!</p>
-      </div>
-      <div class="module">
+            reprehenderit rerum totam vitae! Dignissimos explicabo maiores nesciunt pariatur sit!</p>
+    </div>
+    <div class="module">
         <h3>Animi excepturi id quo soluta.</h3>
         <p>Alias asperiores cumque deserunt ipsa qui quis repellendus? Consequatur eius enim facere illo, iure obcaecati optio quae quos! Aliquid animi atque cupiditate debitis distinctio dolore ea et explicabo iure libero maiores molestiae
-          non nulla numquam, possimus quasi quia temporibus voluptatum?</p>
-      </div>
-      <div class="module">
+            non nulla numquam, possimus quasi quia temporibus voluptatum?</p>
+    </div>
+    <div class="module">
         <h3>Debitis eius eveniet repellendus veniam.</h3>
         <p>Aliquid assumenda beatae commodi deleniti dignissimos ea eius eum eveniet hic impedit incidunt iusto laborum magni minima neque nulla odit officiis porro quaerat quod quos reprehenderit sed, sit tenetur totam unde ut vitae.
-          Delectus eum eveniet provident quam velit voluptatibus.</p>
-      </div>
-      <div class="module">
+            Delectus eum eveniet provident quam velit voluptatibus.</p>
+    </div>
+    <div class="module">
         <h3>Doloremque, magnam rem! Quod, sapiente.</h3>
         <p>Accusamus aut deleniti ducimus ea esse facere magnam, nulla quidem, quis recusandae repudiandae, sequi totam voluptatem. Ad enim illo magnam maxime neque perspiciatis quae quis ut. A cum delectus, dolores eveniet illum maxime
-          nobis perspiciatis quas qui quos tempora voluptate.</p>
-      </div>
-      <div class="module">
+            nobis perspiciatis quas qui quos tempora voluptate.</p>
+    </div>
+    <div class="module">
         <h3>Expedita ipsum ratione tempora voluptatem!</h3>
         <p>Animi, at atque cumque distinctio dolor dolorem ducimus est et facere facilis fuga impedit ipsam magni necessitatibus nemo non nostrum officiis quasi repellendus sequi, similique tempora unde veniam voluptas voluptates! Cum dolor
-          enim eum, eveniet nesciunt quasi ratione sed? Eaque?</p>
-      </div>
-      <div class="module">
+            enim eum, eveniet nesciunt quasi ratione sed? Eaque?</p>
+    </div>
+    <div class="module">
         <h3>Assumenda eius est eum itaque.</h3>
         <p>Ad alias aut deleniti, dolor dolore eligendi error minima necessitatibus pariatur placeat repellendus sapiente, sed veritatis! Aliquam aperiam consectetur ea est facilis qui tempora! Accusantium culpa distinctio facilis nemo
-          nihil repellat sequi! Dignissimos laborum quod tempora. Accusamus labore rem saepe!</p>
-      </div>
-      <div class="module">
+            nihil repellat sequi! Dignissimos laborum quod tempora. Accusamus labore rem saepe!</p>
+    </div>
+    <div class="module">
         <h3>Eaque expedita harum quos voluptate.</h3>
         <p>Cumque debitis dolore explicabo fugiat ipsa, maiores, modi mollitia natus nostrum officiis perferendis possimus sed sint totam voluptate. Adipisci, amet beatae blanditiis corporis cumque deleniti error et ex harum hic ipsam
-          itaque obcaecati officia officiis optio quo sed, ullam voluptatibus.</p>
-      </div>
-      <div class="module">
+            itaque obcaecati officia officiis optio quo sed, ullam voluptatibus.</p>
+    </div>
+    <div class="module">
         <h3>Eveniet id maiores natus quis?</h3>
         <p>Aliquid cumque debitis dolore eligendi fuga fugiat incidunt itaque laudantium, maxime molestiae nemo omnis quas, quia quisquam ratione sed tenetur veritatis vitae. Ex facere fugit ipsa libero nisi rerum tempora voluptas! Alias
-          architecto aut illum quia repellendus sed! Eveniet, voluptate.</p>
-      </div>
-      <div class="module">
+            architecto aut illum quia repellendus sed! Eveniet, voluptate.</p>
+    </div>
+    <div class="module">
         <h3>Cum nihil reiciendis saepe suscipit.</h3>
         <p>Accusantium, atque distinctio doloremque esse facere fugit ipsam ipsum maiores nihil nobis perferendis porro, quae quasi quia reprehenderit suscipit totam voluptatibus? Amet ducimus earum exercitationem facere hic sunt vel. Amet
-          debitis dolorum id laborum libero magnam magni non perspiciatis sint.</p>
-      </div>
-      <div class="module">
+            debitis dolorum id laborum libero magnam magni non perspiciatis sint.</p>
+    </div>
+    <div class="module">
         <h3>Aut fuga iusto natus quae!</h3>
         <p>Blanditiis earum fuga maiores maxime minima neque officiis perferendis quisquam sequi, sint totam voluptatibus? Ab accusantium aspernatur deserunt dolores doloribus, eaque error expedita, facere, fuga illum in ipsa minus nam
-          natus neque omnis pariatur quasi repudiandae sit soluta sunt voluptatum.</p>
-      </div>
-      <div class="module">
+            natus neque omnis pariatur quasi repudiandae sit soluta sunt voluptatum.</p>
+    </div>
+    <div class="module">
         <h3>Aut non optio tempora voluptates.</h3>
         <p>Amet asperiores at consectetur debitis dolore doloremque dolores earum error et fuga, id ipsa iste neque nulla quia rem soluta totam veritatis voluptates voluptatibus. Amet iste minus voluptatum? Architecto, dolore eveniet labore
-          laborum nisi placeat quis quod reprehenderit soluta vel.</p>
-      </div>
-      <div class="module">
+            laborum nisi placeat quis quod reprehenderit soluta vel.</p>
+    </div>
+    <div class="module">
         <h3>Doloremque facilis omnis provident voluptatum.</h3>
         <p>Aspernatur dignissimos dolorem fugiat molestias quam tempora, tempore. Ad, alias, assumenda atque dolore dolores inventore itaque maxime neque nulla numquam odit qui repellat sit soluta totam ut vero voluptas! Architecto beatae,
-          cum iure magnam nesciunt praesentium quaerat repellat sint voluptatibus.</p>
-      </div>
-      <div class="module">
+            cum iure magnam nesciunt praesentium quaerat repellat sint voluptatibus.</p>
+    </div>
+    <div class="module">
         <h3>Dolor impedit ipsam sapiente. Libero.</h3>
         <p>Aut harum quibusdam quidem. Facere harum ipsum molestias quibusdam quis quo totam vel voluptatum? Amet assumenda dolorem doloremque explicabo fugiat laborum quas quis saepe soluta voluptates? Dolorem ducimus laborum molestias
-          nobis obcaecati optio possimus recusandae saepe voluptatibus. Quas quis, vero.</p>
-      </div>
-      <div class="module">
+            nobis obcaecati optio possimus recusandae saepe voluptatibus. Quas quis, vero.</p>
+    </div>
+    <div class="module">
         <h3>Accusantium commodi error impedit sunt?</h3>
         <p>Adipisci deserunt dolore enim incidunt ipsam qui tenetur totam, veniam? Ea error laudantium magnam, numquam quae sed sequi voluptates? Facere, laborum, repudiandae? Ad, aliquam aliquid amet assumenda beatae blanditiis consectetur
-          deleniti dolores ducimus illo molestias nobis odit porro quibusdam veritatis.</p>
-      </div>
-      <div class="module">
+            deleniti dolores ducimus illo molestias nobis odit porro quibusdam veritatis.</p>
+    </div>
+    <div class="module">
         <h3>Consequuntur cum error fugiat ipsam.</h3>
         <p>A amet aperiam at dignissimos illo illum, labore magni non nostrum officia provident quo, voluptates! Aspernatur consectetur cupiditate debitis deserunt distinctio dolore, dolorem earum esse est illum itaque iusto maiores modi
-          molestiae nemo nobis numquam optio perspiciatis quia quidem reiciendis.</p>
-      </div>
-      <div class="module">
+            molestiae nemo nobis numquam optio perspiciatis quia quidem reiciendis.</p>
+    </div>
+    <div class="module">
         <h3>A alias debitis numquam unde.</h3>
         <p>Exercitationem vel, voluptatum! Aspernatur autem ducimus eaque impedit nemo nihil, placeat quae quaerat saepe temporibus. Assumenda eaque iusto natus officiis quas qui reiciendis sapiente vero. Beatae consectetur eligendi hic
-          illum impedit necessitatibus optio pariatur quos repudiandae sit! Asperiores, libero quia!</p>
-      </div>
-      <div class="module">
+            illum impedit necessitatibus optio pariatur quos repudiandae sit! Asperiores, libero quia!</p>
+    </div>
+    <div class="module">
         <h3>Aspernatur hic odit repellat tempora?</h3>
         <p>Accusantium aliquid asperiores culpa dolor doloremque ex, facere nihil quae! Accusantium alias amet beatae blanditiis, commodi consequatur debitis, deserunt est eveniet ex fuga fugiat id itaque iure libero molestiae
-          necessitatibus nisi, nobis nulla officia omnis quibusdam reiciendis rem tempora vitae?</p>
-      </div>
-      <div class="module">
+            necessitatibus nisi, nobis nulla officia omnis quibusdam reiciendis rem tempora vitae?</p>
+    </div>
+    <div class="module">
         <h3>A consectetur eligendi praesentium soluta.</h3>
         <p>Animi aspernatur consequuntur dolor eligendi facilis, iusto maiores odio odit pariatur possimus quidem quo quod soluta suscipit temporibus ullam veniam. Ab amet asperiores at commodi culpa cum deleniti distinctio dolor, eum
-          eveniet ex facilis fugiat magnam maxime quia, quisquam quod.</p>
-      </div>
-      <div class="module">
+            eveniet ex facilis fugiat magnam maxime quia, quisquam quod.</p>
+    </div>
+    <div class="module">
         <h3>Dolore id maiores nemo quaerat.</h3>
         <p>Accusamus aspernatur cum cumque dicta dolore doloribus, ea eos eveniet excepturi fugit iste labore laborum laudantium maiores neque nesciunt quo quos repellat similique sit soluta tempora totam, ullam veniam vero vitae
-          voluptates. Et id illo laborum, magnam nam perferendis quam.</p>
-      </div>
-      <div class="module">
+            voluptates. Et id illo laborum, magnam nam perferendis quam.</p>
+    </div>
+    <div class="module">
         <h3>Magni porro similique unde voluptas.</h3>
         <p>Aliquid deleniti in non quaerat quidem quo rerum, saepe temporibus vero! A aliquam amet animi consequuntur dignissimos dolore doloremque dolores ducimus eligendi error ex excepturi fugiat illum ipsa laborum magnam necessitatibus
-          odio omnis quae recusandae repellendus rerum sapiente sit, temporibus.</p>
-      </div>
-      <div class="module">
+            odio omnis quae recusandae repellendus rerum sapiente sit, temporibus.</p>
+    </div>
+    <div class="module">
         <h3>Impedit minus natus numquam vel.</h3>
         <p>Dolor dolore doloremque eos explicabo facilis hic, illo illum in incidunt libero nesciunt officia officiis quo reiciendis repellendus sed sequi similique sunt totam ullam veniam vero voluptates voluptatum. Accusamus asperiores at
-          facilis fugit, mollitia ullam veniam! Aut iure quos ullam?</p>
-      </div>
-      <div class="module">
+            facilis fugit, mollitia ullam veniam! Aut iure quos ullam?</p>
+    </div>
+    <div class="module">
         <h3>Blanditiis doloremque excepturi facere voluptate.</h3>
         <p>Dolore, dolores doloribus enim impedit nulla repellendus sed suscipit vel voluptatibus. Ab aliquam amet autem consequuntur ducimus ea et, laboriosam neque nihil omnis quae quaerat reiciendis repudiandae rerum sunt tempore vel!
-          Dolorem est iste magni minus non rerum sit voluptates.</p>
-      </div>
-      <div class="module">
+            Dolorem est iste magni minus non rerum sit voluptates.</p>
+    </div>
+    <div class="module">
         <h3>Delectus dicta nobis officiis optio.</h3>
         <p>Beatae consequatur distinctio eos iure laborum, minus nam nemo nesciunt quaerat quidem reprehenderit sit soluta temporibus. A accusamus assumenda dicta ea eaque et, fuga inventore libero magnam magni maiores molestias nam, nobis
-          nostrum omnis optio quisquam repudiandae sed soluta, voluptates?</p>
-      </div>
+            nostrum omnis optio quisquam repudiandae sed soluta, voluptates?</p>
     </div>
-  </body>
+</div>
+</body>
 </html>

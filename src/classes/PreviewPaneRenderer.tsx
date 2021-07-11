@@ -7,7 +7,7 @@ export class PreviewPaneRenderer {
             <div class="spotlight-search__preview-pane">
                 <div class="spotlight-search__preview-pane-content">
                     <div class="spotlight-search__preview-pane-inner-content">
-                        <img src="http://localhost:3033/text-file.svg" alt="" />
+                        {item.image && <img src={item.image} alt=""/>}
                         <h4>{item.title}</h4>
                         <h5>The subtitle</h5>
                         <div class="attributes">

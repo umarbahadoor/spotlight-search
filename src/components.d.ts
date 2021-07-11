@@ -7,6 +7,8 @@
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 export namespace Components {
     interface UnySpotlightSearch {
+        "closeOnEscape": boolean;
+        "keyboardShortcuts": string;
         "url": string;
     }
 }
@@ -23,6 +25,8 @@ declare global {
 }
 declare namespace LocalJSX {
     interface UnySpotlightSearch {
+        "closeOnEscape"?: boolean;
+        "keyboardShortcuts"?: string;
         "onActionSelected"?: (event: CustomEvent<any>) => void;
         "url"?: string;
     }
