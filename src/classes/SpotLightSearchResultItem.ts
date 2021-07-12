@@ -1,4 +1,4 @@
-export class UnySpotLightSearchResultItem {
+export class SpotLightSearchResultItem {
 
   image: string;
 

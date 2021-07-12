@@ -2,8 +2,9 @@ import {Listen, Component, Element, State, Prop, h, Event, Host, EventEmitter} f
 import {HTMLStencilElement} from "@stencil/core/internal";
 import {search} from "ss-search";
 import {disableBodyScroll, enableBodyScroll} from 'body-scroll-lock';
-import {UnySpotLightSearchResultItem} from "../../classes/UnySpotLightSearchResultItem";
+import {SpotLightSearchResultItem} from "../../classes/SpotLightSearchResultItem";
 import {PreviewPaneRenderer} from "../../classes/PreviewPaneRenderer";
+import {KeyboardListener} from "../../classes/KeyboardListener";
 
 interface SearchResultWithScore {
     score: number;
@@ -40,17 +41,33 @@ interface SearchResultWithScore {
 })
 export class UnySpotlightSearch {
 
+    @Prop() url: string;
+
+    @Prop() closeOnEscape: boolean = true;
+
+    @Prop() keyboardShortcuts: string = 'Ctrl > Ctrl, Shift > Shift, Cmd+S, A > B > C';
+
+    @Event() actionSelected: EventEmitter;
+
     @Element() private el: HTMLStencilElement;
 
-    @State() tick: number = 0;
-
     @State() currentActiveItemIndex: number = -1;
-
-    @State() dblCtrlKey: number = 0;
 
     @State() isOpen: boolean = false;
 
     @State() typedText: string = '';
+
+    @State() helpText: string = '';
+
+    @State() results: SpotLightSearchResultItem[] = [];
+
+    @State() currentActiveItem: SpotLightSearchResultItem;
+
+    private currentSelectedItem: SpotLightSearchResultItem;
+
+    private currentInputFormData: any = {};
+
+    private currentInputIndex: number;
 
     private defaultHelpText: string = 'What are you looking for?';
 
@@ -58,65 +75,55 @@ export class UnySpotlightSearch {
 
     private currentStepResults: [] = null;
 
-    @State() helpText: string = '';
+    private data: any = null;
 
-    @State() results: UnySpotLightSearchResultItem[] = [];
+    private textInput!: HTMLInputElement;
 
-    @State() currentActiveItem: UnySpotLightSearchResultItem;
+    private searchElement!: HTMLElement;
 
-    data: any = null;
-
-    actions: any = [];
-
-    textInput!: HTMLInputElement;
-
-    searchElement!: HTMLElement;
-
-    actionCollection: [] = [];
-
-    @Prop() url: string;
-
-    @Prop() closeOnEscape: boolean = true;
-
-    @Prop() keyboardShortcuts: string = 'Ctrl > Ctrl, Shift > Shift, Cmd+S';
-
-    @Event() actionSelected: EventEmitter<any>;
-
-    keyboardListener: KeyboardListener;
+    private keyboardListener: KeyboardListener;
 
     private showPreview: boolean = true;
 
+    /**
+     *
+     */
     constructor() {
         this.reset();
-        this.keyboardListener = new KeyboardListener(this.keyboardShortcuts);
+
+        this.keyboardListener = new KeyboardListener(this.keyboardShortcuts, () => {
+            this.openSpotlight();
+        }, false);
+
+        console.log(this.searchElement);
     }
 
-    componentWillLoad() {
-        //this.openSpotlight();
-    }
-
+    /**
+     * We load the index asynchronously as soon as the component has been loaded.
+     */
     componentDidLoad() {
         this.fetchIndex();
     }
 
-    connectedCallback() {
-
-    }
-
-    disconnectedCallback() {
-
-    }
-
+    /**
+     * Handles clicks outside of the component
+     */
     handleClickOutside() {
         this.closeSpotlight();
     }
 
+    /**
+     * Registers the event listeners for click-outside
+     */
     registerClickOutsideHandler() {
         this.unregisterClickOutsideHandler();
 
         window.addEventListener('click', this.handleClickOutside.bind(this), false);
     }
 
+    /**
+     * Removes the event listeners for click-outside
+     */
     unregisterClickOutsideHandler() {
         window.removeEventListener('click', this.handleClickOutside.bind(this), false);
     }
@@ -126,16 +133,16 @@ export class UnySpotlightSearch {
      *
      */
     reset() {
-        this.dblCtrlKey             = 0;
-        this.tick                   = 0;
+        this.isOpen                 = false;
         this.currentActiveItemIndex = -1;
         this.currentActiveItem      = null;
+        this.currentSelectedItem    = null;
         this.currentStepResults     = null;
-        this.isOpen                 = false;
+        this.currentInputIndex      = -1;
         this.results                = [];
         this.currentStepHelpText    = this.defaultHelpText;
         this.helpText               = this.defaultHelpText;
-        this.actions                = [];
+
         this.typedText              = '';
 
         if (this.textInput) {
@@ -143,6 +150,9 @@ export class UnySpotlightSearch {
         }
     }
 
+    /**
+     * Retrieved the indexed data from the provided URL.
+     */
     fetchIndex() {
         fetch(this.url)
             .then(response => response.json())
@@ -151,6 +161,12 @@ export class UnySpotlightSearch {
             });
     }
 
+    /**
+     * Used to compare search results based on the score
+     *
+     * @param a
+     * @param b
+     */
     searchResultsScoreCompareFunction(a: SearchResultWithScore, b: SearchResultWithScore)
     {
         return b.score - a.score;
@@ -163,6 +179,12 @@ export class UnySpotlightSearch {
      */
     search(inputText: string): Promise<any[]>
     {
+        if (this.currentStepResults !== null) {
+            return new Promise((resolve) => {
+               resolve(this.currentStepResults);
+            });
+        }
+
         return new Promise((resolve) => {
             const searchableKeys = ['title', 'description'];
             const options = {withScore: true};
@@ -184,9 +206,9 @@ export class UnySpotlightSearch {
     }
 
     /**
-     * @return UnySpotLightSearchResultItem | null
+     * @return SpotLightSearchResultItem | null
      */
-    getActiveItem(): UnySpotLightSearchResultItem | null {
+    getActiveItem(): SpotLightSearchResultItem | null {
         if (this.currentActiveItemIndex !== -1
             && this.results
             && this.results.length > this.currentActiveItemIndex
@@ -258,6 +280,20 @@ export class UnySpotlightSearch {
     }
 
     /**
+     * Converts a search result to the appropriate model.
+     *
+     * @param result
+     */
+    mapSpotLightSearchResults(result: any): SpotLightSearchResultItem {
+        return new SpotLightSearchResultItem(
+            result.title,
+            result.description,
+            result.image,
+            result.action
+        );
+    }
+
+    /**
      * Handler for the `keydown` event of the main search input element.
      *
      * @param event
@@ -269,34 +305,13 @@ export class UnySpotlightSearch {
         if (event.key === 'Tab') {
             event.preventDefault();
             event.stopImmediatePropagation();
+            inputElement.value = this.getActiveItem().title;
         }
 
         if (event.key === 'Enter') {
             event.preventDefault();
             event.stopImmediatePropagation();
-            const activeItem = this.getActiveItem();
-            if (activeItem && activeItem.action) {
-
-                if (activeItem.action.type === 'input') {
-                    console.log(activeItem.action);
-                    this.actions = [];
-                    this.actions.push(activeItem);
-
-                    inputElement.value       = '';
-                    this.typedText           = '';
-                    this.currentStepHelpText = activeItem.action.inputs[0].title;
-                    this.helpText            = activeItem.action.inputs[0].title;
-                    this.results             = [];
-                    this.currentStepResults  = [];
-                    inputElement.focus();
-
-                } else if (activeItem.action.type === 'url') {
-                    window.location = activeItem.action.url;
-                } else {
-                    this.actionSelected.emit(activeItem);
-                }
-            }
-
+            this.handleActionSelected(this.getActiveItem());
         }
 
         if (event.key === 'ArrowUp') {
@@ -309,7 +324,7 @@ export class UnySpotlightSearch {
 
         if (event.key === 'ArrowDown') {
             event.preventDefault();
-            event.stopPropagation()
+            event.stopImmediatePropagation()
             if (this.currentActiveItemIndex < (this.results.length - 1)) {
                 this.setActiveItemByIndex(this.currentActiveItemIndex + 1);
             }
@@ -317,49 +332,96 @@ export class UnySpotlightSearch {
 
     }
 
+    /**
+     * The text in the search input has changed, so we update the typed text and we perform another search.
+     *
+     * @param event
+     */
     onInputChange(event: InputEvent) {
         this.typedText = (event.currentTarget as HTMLInputElement).value;
 
-        if (this.currentStepResults !== null) {
-            this.results = this.currentStepResults.map((result: any) => {
-                return new UnySpotLightSearchResultItem(result.title, result.description, result.image, result.action);
+        this.search(this.typedText)
+            .then((results: []) => {
+                this.helpText = '';
+                this.results = results.map(this.mapSpotLightSearchResults.bind(this));
+
+                this.setActiveItemByIndex(this.results.length ? 0 : -1);
             });
+    }
 
-            this.helpText = '';
+    /**
+     * Handles an action selected.
+     *
+     * @param item
+     */
+    handleActionSelected(item: any) {
+        const inputElement = this.textInput as HTMLInputElement;
 
-            if (this.results.length) {
-                this.setActiveItemByIndex(0);
-            } else {
-                this.setActiveItemByIndex(-1);
+        if (!item && this.currentSelectedItem) {
+            item = this.currentSelectedItem;
+        }
+
+        if (item && item.action) {
+            if (!this.currentSelectedItem) {
+                this.currentSelectedItem = item;
             }
 
-        } else {
-            this.search(this.typedText)
-                .then((results: []) => {
-                    this.results = results.map((result: any) => {
-                        return new UnySpotLightSearchResultItem(result.title, result.description, result.image, result.action);
-                    });
+            if (item.action.type === 'input') {
+                this.setActiveItemByIndex(-1);
 
-                    this.helpText = '';
+                this.currentInputIndex++;
 
-                    if (this.results.length) {
-                        this.setActiveItemByIndex(0);
-                    } else {
-                        this.setActiveItemByIndex(-1);
-                    }
+                if (this.currentInputIndex === 0) {
+                    this.currentInputFormData = {};
+                }
 
-                })
-                .catch((reason) => {
-                    console.log('Promise failed: ', reason);
-                });
+                if (this.currentInputIndex > 0 && this.currentInputIndex <= item.action.inputs.length) {
+                    const fieldName = item.action.inputs[this.currentInputIndex - 1].name;
+                    this.currentInputFormData[fieldName] = inputElement.value;
+                }
+
+                inputElement.value       = '';
+                this.typedText           = '';
+                this.results             = [];
+
+                if (this.currentInputIndex >= 0 && this.currentInputIndex < item.action.inputs.length) {
+                    this.currentStepHelpText = item.action.inputs[this.currentInputIndex].title;
+                    this.helpText            = item.action.inputs[this.currentInputIndex].title;
+                    this.currentStepResults  = [];
+
+                    inputElement.focus();
+                } else {
+                    console.log(this.currentInputFormData);
+                    console.log('COMPLETED?');
+                }
+
+            } else if (item.action.type === 'url') {
+                window.location = item.action.url;
+            } else {
+                this.actionSelected.emit(this.currentSelectedItem);
+            }
         }
     }
 
+    /**
+     * Handles the case where a result item is clicked on. We handle it the same way
+     * as when the keyboard was used.
+     *
+     * @param _event
+     * @param index
+     */
     onResultItemClick(_event: MouseEvent, index: number) {
-        console.log(_event);
-        console.log(index);
+        this.setActiveItemByIndex(index);
+
+        this.handleActionSelected(this.getActiveItem());
     }
 
+    /**
+     * When a result item is being hovered on, we set it as the active item
+     *
+     * @param _event
+     * @param index
+     */
     onResultItemHover(_event: MouseEvent, index: number) {
         if (this.currentActiveItemIndex !== index) {
             this.setActiveItemByIndex(index);
@@ -370,8 +432,6 @@ export class UnySpotlightSearch {
      * Listen to a global event to open the spotlight-search
      *
      * Naming convention: @see https://gomakethings.com/custom-event-naming-conventions-in-vanilla-js/
-     *
-     * @param event
      */
     @Listen('uny:spotlight-search', {target: 'window'})
     handleGlobalSpotlightSearchEvent() {
@@ -386,22 +446,8 @@ export class UnySpotlightSearch {
      */
     @Listen('keydown', {target: 'document'})
     handleKeypress(event: KeyboardEvent) {
-        console.log(event);
-        if (!this.isOpen && this.keyboardListener.isValidShortcode(event)) {
-            this.openSpotlight();
-            //if (event.key === 'Control' && !this.isOpen) {
-            //    if (this.dblCtrlKey > 0) {
-            //        this.openSpotlight();
-            //        this.dblCtrlKey = 0;
-            //    } else {
-            //        this.dblCtrlKey++
-            //        setTimeout(() => {
-            //            this.dblCtrlKey = 0
-            //        }, 400);
-            //    }
-            //} else {
-            //    this.dblCtrlKey = 0
-            //}
+        if (!this.isOpen) {
+            this.keyboardListener.handleKeyboardEvent(event)
         }
 
         /**
@@ -412,7 +458,12 @@ export class UnySpotlightSearch {
         }
     }
 
-
+    /**
+     * Sets the help text based on currently typed text.
+     *
+     * @param text
+     * @private
+     */
     private setHelpText(text: string) {
         if (!text.startsWith(this.typedText)) {
             this.helpText = ' - '.concat(text);
@@ -422,6 +473,11 @@ export class UnySpotlightSearch {
         this.helpText = text.substring(this.typedText.length);
     }
 
+    /**
+     * Returns an array of classes that will be applied on the help text element.
+     *
+     * @private
+     */
     private helpTextClasses() {
         const classes = ['spotlight-search__input-decorator__help-text'];
         if (this.helpText.startsWith(' - ')) {
@@ -433,11 +489,12 @@ export class UnySpotlightSearch {
 
     /**
      * Opens the spotlight search by setting the state `isOpen` to true.
+     *
      * But also does other things:
      * 1. Registers a click outside handler on the window element
      * 2. Disables scrolling the body
      * 3. Resets the state of the component
-     * 3. Sets the focus on the search input element
+     * 4. Sets the focus on the search input element
      *
      * @private
      */
@@ -457,6 +514,7 @@ export class UnySpotlightSearch {
 
     /**
      * Closes the spotlight search by setting the state `isOpen` to false.
+     *
      * But also does other things:
      * 1. Unregisters a click outside handler on the window element
      * 2. Enables scrolling the body
@@ -496,22 +554,16 @@ export class UnySpotlightSearch {
                     <div class="spotlight-search__search">
                         <div class="spotlight-search__input-decorator">
                             <span class="spotlight-search__input-decorator__typed-text">{this.typedText}</span>
-                            <span
-                                class={this.helpTextClasses().join(' ')}>{this.helpText}</span>
+                            <span class={this.helpTextClasses().join(' ')}>{this.helpText}</span>
                         </div>
                         <input
-                            class="spotlight-search__input"
+                            autofocus
                             type="text"
-                            ref={(element) => {
-                                this.textInput = element as HTMLInputElement
-                            }}
-                            onInput={(event: InputEvent) => {
-                                this.onInputChange(event)
-                            }}
-                            onKeyDown={(event: KeyboardEvent) => {
-                                this.onKeyDown(event)
-                            }}
-                            autofocus/>
+                            class="spotlight-search__input"
+                            onKeyDown={this.onKeyDown.bind(this)}
+                            onInput={this.onInputChange.bind(this)}
+                            ref={(element) => this.textInput = element as HTMLInputElement}
+                            />
                     </div>
                     <div class={searchResultClasses.join(' ')}>
                         <div class="spotlight-search__list-wrapper">

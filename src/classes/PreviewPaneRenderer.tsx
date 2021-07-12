@@ -1,8 +1,8 @@
-import {UnySpotLightSearchResultItem} from "./UnySpotLightSearchResultItem";
+import {SpotLightSearchResultItem} from "./SpotLightSearchResultItem";
 import {h} from "@stencil/core";
 
 export class PreviewPaneRenderer {
-    public static render(item: UnySpotLightSearchResultItem) {
+    public static render(item: SpotLightSearchResultItem) {
         return (
             <div class="spotlight-search__preview-pane">
                 <div class="spotlight-search__preview-pane-content">
